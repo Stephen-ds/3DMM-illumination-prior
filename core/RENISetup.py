@@ -4,6 +4,7 @@ from RENI.src.utils.utils import get_directions, get_sineweight
 from RENI.src.utils.custom_transforms import UnMinMaxNormlise
 from RENI.src.models.RENI import RENIVariationalAutoDecoder
 from RENI.src.utils.utils import sRGB
+from kornia.color.rgb import linear_rgb_to_rgb
 
 from torchvision import transforms
 from PIL import Image
@@ -35,7 +36,7 @@ class RENI():
         self.device = device
         self.img_size = img_size
 
-        chkpt_path = 'RENI/models/latent_dim_36_net_5_256_vad_cbc_tanh_hdr/version_0/checkpoints/fit_decoder_epoch=1579.ckpt'
+        chkpt_path = 'RENI/models/latent_dim_36_net_5_256_vad_cbc_tanh_hdr/version_0/checkpoints/fit_inverse_epoch=2209.ckpt'
         self.chkpt = torch.load(chkpt_path, map_location=self.device)
         self.config = self.chkpt['hyper_parameters']['config']
 
@@ -51,6 +52,7 @@ class RENI():
         output_activation = self.config.RENI.OUTPUT_ACTIVATION
         first_omega_0 = self.config.RENI.FIRST_OMEGA_0
         hidden_omega_0 = self.config.RENI.HIDDEN_OMEGA_0
+        
 
         model = RENIVariationalAutoDecoder(dataset_size,
                                    latent_dim,
@@ -83,15 +85,10 @@ class RENI():
         return unnormalise(img)
 
     def to_sRGB(self, img):
-        
-
-        t = transforms.ToPILImage()
-        im = t(img.squeeze().permute(2,0,1))
-        im.save('results/idk.png')
-
         img = img.view(-1, self.H, self.W, 3)
         img = img.permute(0,3,1,2)
-        img = sRGB(img)
+        #img = sRGB(img)
+        img = linear_rgb_to_rgb(img)
         img = img.permute(0,2,3,1)
 
         return img

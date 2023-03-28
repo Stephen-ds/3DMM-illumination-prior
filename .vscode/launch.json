@@ -12,7 +12,7 @@
             "program": "${file}",
             "console": "integratedTerminal",
             "justMyCode": true,
-            "args": ["--img_path=data/000007.jpg", "--res_folder=results", "--tar_size=64"],
+            "args": ["--img_path=data/000002.jpg", "--res_folder=results", "--tar_size=64"],
             "purpose": ["debug-in-terminal"]
         }
     ]

@@ -1,0 +1,41 @@
+2023-03-28 10:35:51,932 INFO    StreamThr :7660 [internal.py:wandb_internal():88] W&B internal server running at pid: 7660, started at: 2023-03-28 10:35:51.931535
+2023-03-28 10:35:51,936 DEBUG   HandlerThread:7660 [handler.py:handle_request():138] handle_request: status
+2023-03-28 10:35:51,939 DEBUG   SenderThread:7660 [sender.py:send_request():315] send_request: status
+2023-03-28 10:35:51,941 DEBUG   SenderThread:7660 [sender.py:send():301] send: header
+2023-03-28 10:35:51,942 INFO    WriterThread:7660 [datastore.py:open_for_write():75] open: /home/stephen/Project/Ours/wandb/run-20230328_103551-2tz7r3ho/run-2tz7r3ho.wandb
+2023-03-28 10:35:52,011 DEBUG   SenderThread:7660 [sender.py:send():301] send: run
+2023-03-28 10:35:52,530 DEBUG   HandlerThread:7660 [handler.py:handle_request():138] handle_request: check_version
+2023-03-28 10:35:52,541 INFO    SenderThread:7660 [dir_watcher.py:__init__():216] watching files in: /home/stephen/Project/Ours/wandb/run-20230328_103551-2tz7r3ho/files
+2023-03-28 10:35:52,541 INFO    SenderThread:7660 [sender.py:_start_run_threads():912] run started: 2tz7r3ho with start time 1679996151.921579
+2023-03-28 10:35:52,541 DEBUG   SenderThread:7660 [sender.py:send():301] send: summary
+2023-03-28 10:35:52,542 INFO    SenderThread:7660 [sender.py:_save_file():1155] saving file wandb-summary.json with policy end
+2023-03-28 10:35:52,542 DEBUG   SenderThread:7660 [sender.py:send_request():315] send_request: check_version
+2023-03-28 10:35:52,627 DEBUG   HandlerThread:7660 [handler.py:handle_request():138] handle_request: run_start
+2023-03-28 10:35:52,632 DEBUG   HandlerThread:7660 [meta.py:__init__():34] meta init
+2023-03-28 10:35:52,632 DEBUG   HandlerThread:7660 [meta.py:__init__():49] meta init done
+2023-03-28 10:35:52,632 DEBUG   HandlerThread:7660 [meta.py:probe():215] probe
+2023-03-28 10:35:52,640 DEBUG   HandlerThread:7660 [meta.py:_setup_git():205] setup git
+2023-03-28 10:35:52,652 DEBUG   HandlerThread:7660 [meta.py:_setup_git():212] setup git done
+2023-03-28 10:35:52,653 DEBUG   HandlerThread:7660 [meta.py:_save_pip():53] save pip
+2023-03-28 10:35:52,653 DEBUG   HandlerThread:7660 [meta.py:_save_pip():67] save pip done
+2023-03-28 10:35:52,654 DEBUG   HandlerThread:7660 [meta.py:_save_conda():74] save conda
+2023-03-28 10:35:53,546 INFO    Thread-18 :7660 [dir_watcher.py:_on_file_created():275] file/dir created: /home/stephen/Project/Ours/wandb/run-20230328_103551-2tz7r3ho/files/wandb-summary.json
+2023-03-28 10:35:53,547 INFO    Thread-18 :7660 [dir_watcher.py:_on_file_created():275] file/dir created: /home/stephen/Project/Ours/wandb/run-20230328_103551-2tz7r3ho/files/requirements.txt
+2023-03-28 10:35:53,547 INFO    Thread-18 :7660 [dir_watcher.py:_on_file_created():275] file/dir created: /home/stephen/Project/Ours/wandb/run-20230328_103551-2tz7r3ho/files/conda-environment.yaml
+2023-03-28 10:35:55,221 DEBUG   HandlerThread:7660 [meta.py:_save_conda():84] save conda done
+2023-03-28 10:35:55,221 DEBUG   HandlerThread:7660 [meta.py:probe():253] probe done
+2023-03-28 10:35:55,306 DEBUG   SenderThread:7660 [sender.py:send():301] send: files
+2023-03-28 10:35:55,306 INFO    SenderThread:7660 [sender.py:_save_file():1155] saving file wandb-metadata.json with policy now
+2023-03-28 10:35:55,317 DEBUG   HandlerThread:7660 [handler.py:handle_request():138] handle_request: stop_status
+2023-03-28 10:35:55,318 DEBUG   SenderThread:7660 [sender.py:send_request():315] send_request: stop_status
+2023-03-28 10:35:55,484 DEBUG   SenderThread:7660 [sender.py:send():301] send: telemetry
+2023-03-28 10:35:55,546 INFO    Thread-18 :7660 [dir_watcher.py:_on_file_modified():292] file/dir modified: /home/stephen/Project/Ours/wandb/run-20230328_103551-2tz7r3ho/files/conda-environment.yaml
+2023-03-28 10:35:55,546 INFO    Thread-18 :7660 [dir_watcher.py:_on_file_created():275] file/dir created: /home/stephen/Project/Ours/wandb/run-20230328_103551-2tz7r3ho/files/output.log
+2023-03-28 10:35:55,546 INFO    Thread-18 :7660 [dir_watcher.py:_on_file_created():275] file/dir created: /home/stephen/Project/Ours/wandb/run-20230328_103551-2tz7r3ho/files/wandb-metadata.json
+2023-03-28 10:35:55,831 INFO    Thread-22 :7660 [upload_job.py:push():139] Uploaded file /tmp/tmpz2ynr9j7wandb/1hnxda6d-wandb-metadata.json
+2023-03-28 10:35:57,546 INFO    Thread-18 :7660 [dir_watcher.py:_on_file_modified():292] file/dir modified: /home/stephen/Project/Ours/wandb/run-20230328_103551-2tz7r3ho/files/output.log
+2023-03-28 10:36:05,549 INFO    Thread-18 :7660 [dir_watcher.py:_on_file_modified():292] file/dir modified: /home/stephen/Project/Ours/wandb/run-20230328_103551-2tz7r3ho/files/output.log
+2023-03-28 10:36:07,550 INFO    Thread-18 :7660 [dir_watcher.py:_on_file_modified():292] file/dir modified: /home/stephen/Project/Ours/wandb/run-20230328_103551-2tz7r3ho/files/output.log
+2023-03-28 10:36:09,551 INFO    Thread-18 :7660 [dir_watcher.py:_on_file_modified():292] file/dir modified: /home/stephen/Project/Ours/wandb/run-20230328_103551-2tz7r3ho/files/output.log
+2023-03-28 10:36:10,489 DEBUG   HandlerThread:7660 [handler.py:handle_request():138] handle_request: stop_status
+2023-03-28 10:36:10,489 DEBUG   SenderThread:7660 [sender.py:send_request():315] send_request: stop_status

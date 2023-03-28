@@ -35,14 +35,15 @@ def sRGB(imgs):
     q = torch.quantile(torch.quantile(torch.quantile(imgs, 0.98, dim=(1)), 0.98, dim=(1)), 0.98, dim=(1))
     imgs = imgs / q.unsqueeze(1).unsqueeze(2).unsqueeze(3)
     imgs = torch.clamp(imgs, 0.0, 1.0)
-    imgs = torch.where(
-        imgs <= 0.0031308,
-        12.92 * imgs,
-        1.055 * torch.pow(torch.abs(imgs), 1 / 2.4) - 0.055,
-    )
-    t = transforms.ToPILImage()
-    im = t(imgs.squeeze())
-    im.save('results/srgb.png')
+    # imgs = torch.where(
+    #     imgs <= 0.0031308,
+    #     12.92 * imgs,
+    #     1.055 * torch.pow(torch.abs(imgs), 1 / 2.4) - 0.055,
+    # )
+    small_u = imgs*12.92
+    big_u = torch.pow(imgs,.416)*1.055-0.055
+
+    imgs = torch.where(imgs<=0.0031308, small_u, big_u)
     return imgs
 
 

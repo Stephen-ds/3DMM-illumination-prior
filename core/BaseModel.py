@@ -3,6 +3,7 @@ import torch.nn as nn
 import numpy as np
 import RENI.src.utils.pytorch3d_envmap_shader as rRender
 
+
 from pytorch3d.structures import Meshes
 from pytorch3d.renderer import (
     look_at_view_transform,
@@ -18,8 +19,8 @@ from pytorch3d.renderer import (
 
 
 class BaseReconModel(nn.Module):
-    def __init__(self, batch_size=1,
-                 focal=1015, img_size=224, device='cuda:0'):
+    def __init__(self, img_size, batch_size=1,
+                 focal=1015, device='cuda:0'):
         super(BaseReconModel, self).__init__()
 
         self.focal = focal
@@ -28,6 +29,7 @@ class BaseReconModel(nn.Module):
 
         self.device = torch.device(device)
         self.renderer = self._get_renderer(self.device)
+        self.renderer_diffuse = self._get_renderer_diffuse(self.device)
 
         self.p_mat = self._get_p_mat(device)
         self.reverse_z = self._get_reverse_z(device)
@@ -47,7 +49,7 @@ class BaseReconModel(nn.Module):
 
     def _get_camera_pose(self, device):
         camera_pos = torch.tensor(
-            [0.0, 0.0, 10.0], device=device).reshape(1, 1, 3)
+            [0.0, 0.0, 50.0], device=device).reshape(1, 1, 3)
         return camera_pos
 
     def _get_p_mat(self, device):
@@ -64,6 +66,9 @@ class BaseReconModel(nn.Module):
 
     def _get_renderer(self, device):
         return rRender.build_renderer(self.img_size, self.focal, 1, device)
+    
+    def _get_renderer_diffuse(self, device):
+        return rRender.build_renderer_diffuse(self.img_size, self.focal, 1, device)
 
     def compute_norm(self, vs, tri, point_buf):
 

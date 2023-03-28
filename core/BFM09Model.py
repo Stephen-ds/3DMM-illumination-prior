@@ -83,7 +83,7 @@ class BFM09ReconModel(BaseReconModel):
                             angles, gamma, translation], dim=1)
         return coeffs
 
-    def forward(self, coeffs, envmap=None, render=True):
+    def forward(self, coeffs, envmap=None, render=True, render_diffuse=False):
         batch_num = coeffs.shape[0]
         #here - gamma
         id_coeff, exp_coeff, tex_coeff, angles, gamma, translation = self.split_coeffs(
@@ -119,8 +119,10 @@ class BFM09ReconModel(BaseReconModel):
             #IO.save_mesh()
             
             #envmap = init_envmap(img_size=self.img_size)
-
-            rendered_img = self.renderer(mesh, envmap=envmap)[0]
+            if render_diffuse:
+                rendered_img = self.renderer_diffuse(mesh, envmap=envmap)
+            else:
+                rendered_img = self.renderer(mesh, envmap=envmap)[0]
             #here might need to think about this clamping
             #rendered_img = torch.clamp(rendered_img[0], 0, 255)
             #here need to think about face_color - it is face_texture
@@ -132,6 +134,7 @@ class BFM09ReconModel(BaseReconModel):
                     'vs': vs_t,
                     'tri': self.tri,
                     'color': face_texture}
+        
         else:
             return {'lms_proj': lms_proj}
 

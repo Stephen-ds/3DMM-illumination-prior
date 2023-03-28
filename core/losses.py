@@ -22,7 +22,7 @@ def photo_loss(pred_img, gt_img, img_mask):
 #     return loss
 
 
-def lm_loss(pred_lms, gt_lms, weight, img_size=224):
+def lm_loss(pred_lms, gt_lms, weight, img_size):
     loss = torch.sum(torch.square(pred_lms/img_size - gt_lms /
                                   img_size), dim=2) * weight.reshape(1, -1)
     loss = torch.mean(loss.sum(1))

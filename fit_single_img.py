@@ -2,6 +2,7 @@ from facenet_pytorch import MTCNN
 from core.RENISetup import RENI
 from RENI.src.utils.loss_functions import RENITestLossInverse
 from RENI.src.models.RENI import SO2InvariantRepresentation
+from RENI.src.utils.utils import sRGB
 from RENI.src.utils.pytorch3d_envmap_shader import EnvironmentMap
 from core.options import ImageFittingOptions
 import cv2
@@ -13,12 +14,21 @@ import torch
 import core.utils as utils
 from tqdm import tqdm
 import core.losses as losses
+import matplotlib.pyplot as plt
+from PIL import Image
+
+from torch.utils.tensorboard import SummaryWriter
+import wandb
 
 import os
 os.environ['CUDA_LAUNCH_BLOCKING'] = "1"
 
 
 def fit(args):
+    writer = SummaryWriter()
+    #wandb.init(project="3DMM",
+    #    notes="playing with cameras")
+
     # init face detection and lms detection models
     print('loading models')
     mtcnn = MTCNN(device=args.device, select_largest=False)
@@ -58,7 +68,7 @@ def fit(args):
     lms = torch.tensor(lms, dtype=torch.float32, device=args.device)
     img_tensor = torch.tensor(
         resized_face_img[None, ...], dtype=torch.float32, device=args.device)
-    img_tensor = img_tensor / 255
+    #img_tensor = img_tensor / 255
 
     print('landmarks detected.')
 
@@ -72,6 +82,17 @@ def fit(args):
         pred_dict = recon_model(recon_model.get_packed_tensors(), render=False)
         lm_loss_val = losses.lm_loss(
             pred_dict['lms_proj'], lms, lm_weights, img_size=args.tar_size)
+        
+        orig_face_log = img_tensor.cpu().numpy().squeeze().astype(np.uint8)
+        # fig, ax = plt.subplots(figsize=(4, 4))
+        # ax.imshow(orig_face_log)
+        # ax.axis('off')
+
+        # for landmark in lms.cpu():
+        #     #ax.scatter(*np.meshgrid([bbox[0], bbox[2]], [bbox[1], bbox[3]]))
+        #     ax.scatter(landmark[:, 0], landmark[:, 1], s=8)
+        # writer.add_figure('landmarks_rigid', fig, global_step=i)
+
         total_loss = args.lm_loss_w * lm_loss_val
         total_loss.backward()
         rigid_optimizer.step()
@@ -87,6 +108,7 @@ def fit(args):
     #here add reni lr into args later
     #reni_optimizer = torch.optim.Adam(reni_model.parameters(), lr=1e-1)
     reni_criterion = RENITestLossInverse(alpha=1e-7, beta=1e-1)
+    #for i in tqdm(range(args.first_nrf_iters)):
     for i in tqdm(range(args.first_nrf_iters)):
         nonrigid_optimizer.zero_grad()
 
@@ -107,16 +129,45 @@ def fit(args):
             sineweight=S
         )
 
+        envmap_im = envmap.environment_map.view(-1, 32, 64, 3)
+        envmap_im = sRGB(envmap_im).squeeze().permute(2,0,1).cpu()
+
+        #envmap_im = Image.fromarray(envmap_im)  
+        #wandb.log({"envmap": wandb.Image(envmap_im)}
+        writer.add_image('envmap', envmap_im, global_step=i)
+
         pred_dict = recon_model(recon_model.get_packed_tensors(), envmap=envmap, render=True)
         rendered_img = pred_dict['rendered_img']
-        #rendered_img = reni.to_sRGB(rendered_img)
+        rendered_img = reni.to_sRGB(rendered_img)#########
         lms_proj = pred_dict['lms_proj']
         #face_color not used in losses? - can omit?
         face_texture = pred_dict['face_texture']
 
         mask = rendered_img[:, :, :, 2].detach()
 
-        reni_loss, _, _, _ = reni_criterion(rendered_img, img_tensor, Z)
+        render_out = rendered_img.detach().cpu().numpy().squeeze().astype(np.uint8)
+
+        fig, ax = plt.subplots(figsize=(4, 4))
+        ax.axis('off')
+        ax.imshow(render_out)
+        for landmark in lms_proj.detach().cpu():
+            #ax.scatter(*np.meshgrid([bbox[0], bbox[2]], [bbox[1], bbox[3]]))
+            ax.scatter(landmark[:, 0], landmark[:, 1], s=8)
+        #wandb.log({'landmarks_proj': fig})
+        writer.add_figure('landmarks_proj', fig, global_step=i)
+        plt.close(fig)
+
+        fig, ax = plt.subplots(figsize=(4, 4))
+        ax.axis('off')
+        ax.imshow(orig_face_log)
+        for landmark in lms.cpu():
+            #ax.scatter(*np.meshgrid([bbox[0], bbox[2]], [bbox[1], bbox[3]]))
+            ax.scatter(landmark[:, 0], landmark[:, 1], s=8)
+        #wandb.log({'landmarks': fig})
+        writer.add_figure('landmarks', fig, global_step=i)
+        plt.close(fig)
+
+        #reni_loss, _, _, _ = reni_criterion(rendered_img, img_tensor, Z)
 
         photo_loss_val = losses.photo_loss(
             rendered_img, img_tensor, mask > 0)
@@ -136,8 +187,8 @@ def fit(args):
             exp_reg_loss*args.exp_reg_w + \
             tex_reg_loss*args.tex_reg_w + \
             tex_loss_val*args.tex_w + \
-            photo_loss_val*args.rgb_loss_w + \
-            reni_loss
+            photo_loss_val*args.rgb_loss_w
+            #reni_loss
 
         loss.backward()
         #print(Z.grad)
@@ -150,7 +201,7 @@ def fit(args):
     loss_str += 'id_reg_loss: %f\t' % id_reg_loss.detach().cpu().numpy()
     loss_str += 'exp_reg_loss: %f\t' % exp_reg_loss.detach().cpu().numpy()
     loss_str += 'tex_reg_loss: %f\t' % tex_reg_loss.detach().cpu().numpy()
-    loss_str += 'reni loss: %f\t' % reni_loss.detach().cpu().numpy()
+    #loss_str += 'reni loss: %f\t' % reni_loss.detach().cpu().numpy()
     print('done non rigid fitting.', loss_str)
 
     with torch.no_grad():
@@ -160,22 +211,19 @@ def fit(args):
         rendered_img = reni.to_sRGB(rendered_img)
         rendered_img = rendered_img.cpu().numpy().squeeze()
         #out_img = rendered_img[:, :, :3].astype(np.uint8)
-        out_img = rendered_img.astype(np.float32)
-        out_mask = (rendered_img[:, :, 2] > 0).astype(np.float32)
+        out_img = rendered_img.astype(np.uint8)
+        out_mask = (rendered_img[:, :, 2] > 0).astype(np.uint8)
         resized_out_img = cv2.resize(out_img, (face_w, face_h))
         resized_mask = cv2.resize(
             out_mask, (face_w, face_h), cv2.INTER_NEAREST)[..., None]
 
         composed_img = img_arr.copy()
-        composed_img = composed_img.astype(np.float32) / 255
+        composed_img = composed_img.astype(np.uint8)
         composed_face = composed_img[bbox[1]:bbox[3], bbox[0]:bbox[2], :] * \
             (1 - resized_mask) + resized_out_img * resized_mask
         composed_img[bbox[1]:bbox[3], bbox[0]:bbox[2], :] = composed_face
-        composed_face = composed_img[bbox[1]:bbox[3], bbox[0]:bbox[2], :] \
-            + resized_out_img
-        composed_img[bbox[1]:bbox[3], bbox[0]:bbox[2], :] = composed_face
 
-        composed_img = np.floor(composed_img*256)
+        #composed_img = np.floor(composed_img*256)
 
         utils.mymkdirs(args.res_folder)
         basename = os.path.basename(args.img_path)[:-4]
@@ -196,6 +244,21 @@ def fit(args):
         tri = pred_dict['tri'].cpu().numpy().squeeze()
         color = pred_dict['color'].cpu().numpy().squeeze()
         utils.save_obj(out_obj_path, vs, tri+1, color)
+
+        pred_dict = recon_model(coeffs, envmap=envmap, render=True, render_diffuse=True)
+        rendered_img_diffuse = pred_dict['rendered_img']
+        rendered_img_diffuse = reni.to_sRGB(rendered_img_diffuse)
+        render_out_diffuse = rendered_img_diffuse.detach().cpu().numpy().squeeze().astype(np.uint8)
+
+        fig, ax = plt.subplots(figsize=(4, 4))
+        ax.axis('off')
+        ax.imshow(render_out_diffuse)
+        for landmark in lms_proj.detach().cpu():
+            #ax.scatter(*np.meshgrid([bbox[0], bbox[2]], [bbox[1], bbox[3]]))
+            ax.scatter(landmark[:, 0], landmark[:, 1], s=8)
+        #wandb.log({'diffuse': fig})
+        writer.add_figure('diffuse', fig)
+        plt.close(fig)
 
         print('composed image is saved at %s' % args.res_folder)
 

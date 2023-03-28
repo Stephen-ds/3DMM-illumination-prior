@@ -1,0 +1,300 @@
+2023-03-28 10:36:24,992 INFO    StreamThr :8376 [internal.py:wandb_internal():88] W&B internal server running at pid: 8376, started at: 2023-03-28 10:36:24.991419
+2023-03-28 10:36:24,996 DEBUG   HandlerThread:8376 [handler.py:handle_request():138] handle_request: status
+2023-03-28 10:36:24,998 DEBUG   SenderThread:8376 [sender.py:send_request():315] send_request: status
+2023-03-28 10:36:25,000 DEBUG   SenderThread:8376 [sender.py:send():301] send: header
+2023-03-28 10:36:25,000 INFO    WriterThread:8376 [datastore.py:open_for_write():75] open: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/run-wyndbs4c.wandb
+2023-03-28 10:36:25,058 DEBUG   SenderThread:8376 [sender.py:send():301] send: run
+2023-03-28 10:36:25,627 DEBUG   HandlerThread:8376 [handler.py:handle_request():138] handle_request: check_version
+2023-03-28 10:36:25,631 INFO    SenderThread:8376 [dir_watcher.py:__init__():216] watching files in: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files
+2023-03-28 10:36:25,631 INFO    SenderThread:8376 [sender.py:_start_run_threads():912] run started: wyndbs4c with start time 1679996184.98689
+2023-03-28 10:36:25,631 DEBUG   SenderThread:8376 [sender.py:send():301] send: summary
+2023-03-28 10:36:25,632 INFO    SenderThread:8376 [sender.py:_save_file():1155] saving file wandb-summary.json with policy end
+2023-03-28 10:36:25,632 DEBUG   SenderThread:8376 [sender.py:send_request():315] send_request: check_version
+2023-03-28 10:36:25,710 DEBUG   HandlerThread:8376 [handler.py:handle_request():138] handle_request: run_start
+2023-03-28 10:36:25,719 DEBUG   HandlerThread:8376 [meta.py:__init__():34] meta init
+2023-03-28 10:36:25,719 DEBUG   HandlerThread:8376 [meta.py:__init__():49] meta init done
+2023-03-28 10:36:25,719 DEBUG   HandlerThread:8376 [meta.py:probe():215] probe
+2023-03-28 10:36:25,729 DEBUG   HandlerThread:8376 [meta.py:_setup_git():205] setup git
+2023-03-28 10:36:25,748 DEBUG   HandlerThread:8376 [meta.py:_setup_git():212] setup git done
+2023-03-28 10:36:25,749 DEBUG   HandlerThread:8376 [meta.py:_save_pip():53] save pip
+2023-03-28 10:36:25,750 DEBUG   HandlerThread:8376 [meta.py:_save_pip():67] save pip done
+2023-03-28 10:36:25,750 DEBUG   HandlerThread:8376 [meta.py:_save_conda():74] save conda
+2023-03-28 10:36:26,634 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_created():275] file/dir created: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/requirements.txt
+2023-03-28 10:36:26,634 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_created():275] file/dir created: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/conda-environment.yaml
+2023-03-28 10:36:26,635 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_created():275] file/dir created: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/wandb-summary.json
+2023-03-28 10:36:27,960 DEBUG   HandlerThread:8376 [meta.py:_save_conda():84] save conda done
+2023-03-28 10:36:27,960 DEBUG   HandlerThread:8376 [meta.py:probe():253] probe done
+2023-03-28 10:36:28,029 DEBUG   SenderThread:8376 [sender.py:send():301] send: files
+2023-03-28 10:36:28,029 INFO    SenderThread:8376 [sender.py:_save_file():1155] saving file wandb-metadata.json with policy now
+2023-03-28 10:36:28,038 DEBUG   HandlerThread:8376 [handler.py:handle_request():138] handle_request: stop_status
+2023-03-28 10:36:28,038 DEBUG   SenderThread:8376 [sender.py:send_request():315] send_request: stop_status
+2023-03-28 10:36:28,210 DEBUG   SenderThread:8376 [sender.py:send():301] send: telemetry
+2023-03-28 10:36:28,632 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_modified():292] file/dir modified: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/conda-environment.yaml
+2023-03-28 10:36:28,633 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_created():275] file/dir created: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/output.log
+2023-03-28 10:36:28,633 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_created():275] file/dir created: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/wandb-metadata.json
+2023-03-28 10:36:28,670 INFO    Thread-22 :8376 [upload_job.py:push():139] Uploaded file /tmp/tmp8dujk25jwandb/1hbusjsr-wandb-metadata.json
+2023-03-28 10:36:30,633 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_modified():292] file/dir modified: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/output.log
+2023-03-28 10:36:36,635 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_modified():292] file/dir modified: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/output.log
+2023-03-28 10:36:37,636 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_modified():292] file/dir modified: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/output.log
+2023-03-28 10:36:39,636 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_modified():292] file/dir modified: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/output.log
+2023-03-28 10:36:40,637 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_modified():292] file/dir modified: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/output.log
+2023-03-28 10:36:41,637 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_modified():292] file/dir modified: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/output.log
+2023-03-28 10:36:43,222 DEBUG   HandlerThread:8376 [handler.py:handle_request():138] handle_request: stop_status
+2023-03-28 10:36:43,223 DEBUG   SenderThread:8376 [sender.py:send_request():315] send_request: stop_status
+2023-03-28 10:36:44,506 DEBUG   HandlerThread:8376 [handler.py:handle_request():138] handle_request: partial_history
+2023-03-28 10:36:44,506 DEBUG   SenderThread:8376 [sender.py:send():301] send: files
+2023-03-28 10:36:44,507 INFO    SenderThread:8376 [sender.py:_save_file():1155] saving file media/plotly/scene_plot_0_0d9dd55319273149a7ea.plotly.json with policy now
+2023-03-28 10:36:44,507 DEBUG   SenderThread:8376 [sender.py:send():301] send: history
+2023-03-28 10:36:44,507 DEBUG   SenderThread:8376 [sender.py:send():301] send: summary
+2023-03-28 10:36:44,511 INFO    SenderThread:8376 [sender.py:_save_file():1155] saving file wandb-summary.json with policy end
+2023-03-28 10:36:44,639 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_modified():292] file/dir modified: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/wandb-summary.json
+2023-03-28 10:36:44,639 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_created():275] file/dir created: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/media/plotly/scene_plot_0_0d9dd55319273149a7ea.plotly.json
+2023-03-28 10:36:44,639 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_created():275] file/dir created: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/media/plotly
+2023-03-28 10:36:44,639 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_created():275] file/dir created: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/media
+2023-03-28 10:36:45,639 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_modified():292] file/dir modified: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/output.log
+2023-03-28 10:36:45,670 INFO    Thread-23 :8376 [upload_job.py:push():139] Uploaded file /tmp/tmp8dujk25jwandb/3je74j01-media/plotly/scene_plot_0_0d9dd55319273149a7ea.plotly.json
+2023-03-28 10:36:46,796 INFO    Thread-24 :8376 [upload_job.py:push():139] Uploaded file /tmp/tmp8dujk25jwandb/cdw7l90y-media/plotly/scene_plot_0_0d9dd55319273149a7ea.plotly.json
+2023-03-28 10:36:49,380 DEBUG   SenderThread:8376 [sender.py:send():301] send: files
+2023-03-28 10:36:49,380 INFO    SenderThread:8376 [sender.py:_save_file():1155] saving file media/plotly/scene_plot_1_187f637275c1e0be0f47.plotly.json with policy now
+2023-03-28 10:36:49,420 DEBUG   HandlerThread:8376 [handler.py:handle_request():138] handle_request: partial_history
+2023-03-28 10:36:49,421 DEBUG   SenderThread:8376 [sender.py:send():301] send: history
+2023-03-28 10:36:49,421 DEBUG   SenderThread:8376 [sender.py:send():301] send: summary
+2023-03-28 10:36:49,424 INFO    SenderThread:8376 [sender.py:_save_file():1155] saving file wandb-summary.json with policy end
+2023-03-28 10:36:49,641 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_modified():292] file/dir modified: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/wandb-summary.json
+2023-03-28 10:36:49,641 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_created():275] file/dir created: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/media/plotly/scene_plot_1_187f637275c1e0be0f47.plotly.json
+2023-03-28 10:36:49,641 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_modified():292] file/dir modified: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/media/plotly
+2023-03-28 10:36:50,557 INFO    Thread-25 :8376 [upload_job.py:push():139] Uploaded file /tmp/tmp8dujk25jwandb/3ji2c0i7-media/plotly/scene_plot_1_187f637275c1e0be0f47.plotly.json
+2023-03-28 10:36:51,642 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_modified():292] file/dir modified: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/output.log
+2023-03-28 10:36:51,709 INFO    Thread-26 :8376 [upload_job.py:push():139] Uploaded file /tmp/tmp8dujk25jwandb/3qgr307k-media/plotly/scene_plot_1_187f637275c1e0be0f47.plotly.json
+2023-03-28 10:36:53,958 DEBUG   SenderThread:8376 [sender.py:send():301] send: stats
+2023-03-28 10:36:54,370 DEBUG   SenderThread:8376 [sender.py:send():301] send: files
+2023-03-28 10:36:54,370 INFO    SenderThread:8376 [sender.py:_save_file():1155] saving file media/plotly/scene_plot_2_d0ff8266ff052bc65be1.plotly.json with policy now
+2023-03-28 10:36:54,412 DEBUG   HandlerThread:8376 [handler.py:handle_request():138] handle_request: partial_history
+2023-03-28 10:36:54,413 DEBUG   SenderThread:8376 [sender.py:send():301] send: history
+2023-03-28 10:36:54,413 DEBUG   SenderThread:8376 [sender.py:send():301] send: summary
+2023-03-28 10:36:54,413 INFO    SenderThread:8376 [sender.py:_save_file():1155] saving file wandb-summary.json with policy end
+2023-03-28 10:36:54,644 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_modified():292] file/dir modified: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/wandb-summary.json
+2023-03-28 10:36:54,644 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_created():275] file/dir created: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/media/plotly/scene_plot_2_d0ff8266ff052bc65be1.plotly.json
+2023-03-28 10:36:54,644 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_modified():292] file/dir modified: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/media/plotly
+2023-03-28 10:36:55,509 INFO    Thread-27 :8376 [upload_job.py:push():139] Uploaded file /tmp/tmp8dujk25jwandb/2tyfgx60-media/plotly/scene_plot_2_d0ff8266ff052bc65be1.plotly.json
+2023-03-28 10:36:55,644 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_modified():292] file/dir modified: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/output.log
+2023-03-28 10:36:56,645 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_modified():292] file/dir modified: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/config.yaml
+2023-03-28 10:36:56,730 INFO    Thread-28 :8376 [upload_job.py:push():139] Uploaded file /tmp/tmp8dujk25jwandb/4qjdtw9g-media/plotly/scene_plot_2_d0ff8266ff052bc65be1.plotly.json
+2023-03-28 10:36:58,452 DEBUG   HandlerThread:8376 [handler.py:handle_request():138] handle_request: stop_status
+2023-03-28 10:36:58,452 DEBUG   SenderThread:8376 [sender.py:send_request():315] send_request: stop_status
+2023-03-28 10:36:59,304 DEBUG   HandlerThread:8376 [handler.py:handle_request():138] handle_request: partial_history
+2023-03-28 10:36:59,304 DEBUG   SenderThread:8376 [sender.py:send():301] send: files
+2023-03-28 10:36:59,305 INFO    SenderThread:8376 [sender.py:_save_file():1155] saving file media/plotly/scene_plot_3_3f5d45fd7f5b374b92d6.plotly.json with policy now
+2023-03-28 10:36:59,305 DEBUG   SenderThread:8376 [sender.py:send():301] send: history
+2023-03-28 10:36:59,305 DEBUG   SenderThread:8376 [sender.py:send():301] send: summary
+2023-03-28 10:36:59,308 INFO    SenderThread:8376 [sender.py:_save_file():1155] saving file wandb-summary.json with policy end
+2023-03-28 10:36:59,646 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_modified():292] file/dir modified: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/wandb-summary.json
+2023-03-28 10:36:59,646 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_created():275] file/dir created: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/media/plotly/scene_plot_3_3f5d45fd7f5b374b92d6.plotly.json
+2023-03-28 10:36:59,647 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_modified():292] file/dir modified: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/media/plotly
+2023-03-28 10:37:00,417 INFO    Thread-29 :8376 [upload_job.py:push():139] Uploaded file /tmp/tmp8dujk25jwandb/3vpqvonk-media/plotly/scene_plot_3_3f5d45fd7f5b374b92d6.plotly.json
+2023-03-28 10:37:01,544 INFO    Thread-30 :8376 [upload_job.py:push():139] Uploaded file /tmp/tmp8dujk25jwandb/26agpc3t-media/plotly/scene_plot_3_3f5d45fd7f5b374b92d6.plotly.json
+2023-03-28 10:37:01,647 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_modified():292] file/dir modified: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/output.log
+2023-03-28 10:37:04,328 DEBUG   SenderThread:8376 [sender.py:send():301] send: files
+2023-03-28 10:37:04,328 INFO    SenderThread:8376 [sender.py:_save_file():1155] saving file media/plotly/scene_plot_4_47f5a8b2133ed5b829a1.plotly.json with policy now
+2023-03-28 10:37:04,372 DEBUG   HandlerThread:8376 [handler.py:handle_request():138] handle_request: partial_history
+2023-03-28 10:37:04,373 DEBUG   SenderThread:8376 [sender.py:send():301] send: history
+2023-03-28 10:37:04,373 DEBUG   SenderThread:8376 [sender.py:send():301] send: summary
+2023-03-28 10:37:04,377 INFO    SenderThread:8376 [sender.py:_save_file():1155] saving file wandb-summary.json with policy end
+2023-03-28 10:37:04,649 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_modified():292] file/dir modified: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/wandb-summary.json
+2023-03-28 10:37:04,649 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_created():275] file/dir created: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/media/plotly/scene_plot_4_47f5a8b2133ed5b829a1.plotly.json
+2023-03-28 10:37:04,649 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_modified():292] file/dir modified: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/media/plotly
+2023-03-28 10:37:05,650 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_modified():292] file/dir modified: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/output.log
+2023-03-28 10:37:05,844 INFO    Thread-31 :8376 [upload_job.py:push():139] Uploaded file /tmp/tmp8dujk25jwandb/t8t4i6u1-media/plotly/scene_plot_4_47f5a8b2133ed5b829a1.plotly.json
+2023-03-28 10:37:06,971 INFO    Thread-32 :8376 [upload_job.py:push():139] Uploaded file /tmp/tmp8dujk25jwandb/4r2nu3q2-media/plotly/scene_plot_4_47f5a8b2133ed5b829a1.plotly.json
+2023-03-28 10:37:09,434 DEBUG   SenderThread:8376 [sender.py:send():301] send: files
+2023-03-28 10:37:09,434 INFO    SenderThread:8376 [sender.py:_save_file():1155] saving file media/plotly/scene_plot_5_6a89a2fbdf0c293b7bbf.plotly.json with policy now
+2023-03-28 10:37:09,476 DEBUG   HandlerThread:8376 [handler.py:handle_request():138] handle_request: partial_history
+2023-03-28 10:37:09,477 DEBUG   SenderThread:8376 [sender.py:send():301] send: history
+2023-03-28 10:37:09,477 DEBUG   SenderThread:8376 [sender.py:send():301] send: summary
+2023-03-28 10:37:09,480 INFO    SenderThread:8376 [sender.py:_save_file():1155] saving file wandb-summary.json with policy end
+2023-03-28 10:37:09,652 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_modified():292] file/dir modified: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/wandb-summary.json
+2023-03-28 10:37:09,652 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_created():275] file/dir created: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/media/plotly/scene_plot_5_6a89a2fbdf0c293b7bbf.plotly.json
+2023-03-28 10:37:09,653 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_modified():292] file/dir modified: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/media/plotly
+2023-03-28 10:37:10,690 INFO    Thread-33 :8376 [upload_job.py:push():139] Uploaded file /tmp/tmp8dujk25jwandb/16szs3gf-media/plotly/scene_plot_5_6a89a2fbdf0c293b7bbf.plotly.json
+2023-03-28 10:37:11,653 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_modified():292] file/dir modified: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/output.log
+2023-03-28 10:37:11,900 INFO    Thread-34 :8376 [upload_job.py:push():139] Uploaded file /tmp/tmp8dujk25jwandb/11jkinpv-media/plotly/scene_plot_5_6a89a2fbdf0c293b7bbf.plotly.json
+2023-03-28 10:37:13,825 DEBUG   HandlerThread:8376 [handler.py:handle_request():138] handle_request: stop_status
+2023-03-28 10:37:13,825 DEBUG   SenderThread:8376 [sender.py:send_request():315] send_request: stop_status
+2023-03-28 10:37:14,331 DEBUG   SenderThread:8376 [sender.py:send():301] send: files
+2023-03-28 10:37:14,331 INFO    SenderThread:8376 [sender.py:_save_file():1155] saving file media/plotly/scene_plot_6_c5647d9aed4387be01d7.plotly.json with policy now
+2023-03-28 10:37:14,332 DEBUG   HandlerThread:8376 [handler.py:handle_request():138] handle_request: partial_history
+2023-03-28 10:37:14,333 DEBUG   SenderThread:8376 [sender.py:send():301] send: history
+2023-03-28 10:37:14,333 DEBUG   SenderThread:8376 [sender.py:send():301] send: summary
+2023-03-28 10:37:14,338 INFO    SenderThread:8376 [sender.py:_save_file():1155] saving file wandb-summary.json with policy end
+2023-03-28 10:37:14,656 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_modified():292] file/dir modified: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/wandb-summary.json
+2023-03-28 10:37:14,656 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_created():275] file/dir created: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/media/plotly/scene_plot_6_c5647d9aed4387be01d7.plotly.json
+2023-03-28 10:37:14,657 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_modified():292] file/dir modified: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/media/plotly
+2023-03-28 10:37:15,368 INFO    Thread-35 :8376 [upload_job.py:push():139] Uploaded file /tmp/tmp8dujk25jwandb/3m3cxxl0-media/plotly/scene_plot_6_c5647d9aed4387be01d7.plotly.json
+2023-03-28 10:37:15,657 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_modified():292] file/dir modified: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/output.log
+2023-03-28 10:37:16,547 INFO    Thread-36 :8376 [upload_job.py:push():139] Uploaded file /tmp/tmp8dujk25jwandb/31oebk80-media/plotly/scene_plot_6_c5647d9aed4387be01d7.plotly.json
+2023-03-28 10:37:19,225 DEBUG   SenderThread:8376 [sender.py:send():301] send: files
+2023-03-28 10:37:19,226 INFO    SenderThread:8376 [sender.py:_save_file():1155] saving file media/plotly/scene_plot_7_c48cb215e65b77c0a569.plotly.json with policy now
+2023-03-28 10:37:19,268 DEBUG   HandlerThread:8376 [handler.py:handle_request():138] handle_request: partial_history
+2023-03-28 10:37:19,268 DEBUG   SenderThread:8376 [sender.py:send():301] send: history
+2023-03-28 10:37:19,269 DEBUG   SenderThread:8376 [sender.py:send():301] send: summary
+2023-03-28 10:37:19,272 INFO    SenderThread:8376 [sender.py:_save_file():1155] saving file wandb-summary.json with policy end
+2023-03-28 10:37:19,659 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_modified():292] file/dir modified: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/wandb-summary.json
+2023-03-28 10:37:19,659 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_created():275] file/dir created: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/media/plotly/scene_plot_7_c48cb215e65b77c0a569.plotly.json
+2023-03-28 10:37:19,659 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_modified():292] file/dir modified: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/media/plotly
+2023-03-28 10:37:20,386 INFO    Thread-37 :8376 [upload_job.py:push():139] Uploaded file /tmp/tmp8dujk25jwandb/3ig6z89h-media/plotly/scene_plot_7_c48cb215e65b77c0a569.plotly.json
+2023-03-28 10:37:21,532 INFO    Thread-38 :8376 [upload_job.py:push():139] Uploaded file /tmp/tmp8dujk25jwandb/325abw0a-media/plotly/scene_plot_7_c48cb215e65b77c0a569.plotly.json
+2023-03-28 10:37:21,660 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_modified():292] file/dir modified: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/output.log
+2023-03-28 10:37:24,153 DEBUG   SenderThread:8376 [sender.py:send():301] send: stats
+2023-03-28 10:37:24,545 DEBUG   SenderThread:8376 [sender.py:send():301] send: files
+2023-03-28 10:37:24,545 INFO    SenderThread:8376 [sender.py:_save_file():1155] saving file media/plotly/scene_plot_8_3741f66abf2a7eae15c2.plotly.json with policy now
+2023-03-28 10:37:24,588 DEBUG   HandlerThread:8376 [handler.py:handle_request():138] handle_request: partial_history
+2023-03-28 10:37:24,589 DEBUG   SenderThread:8376 [sender.py:send():301] send: history
+2023-03-28 10:37:24,589 DEBUG   SenderThread:8376 [sender.py:send():301] send: summary
+2023-03-28 10:37:24,589 INFO    SenderThread:8376 [sender.py:_save_file():1155] saving file wandb-summary.json with policy end
+2023-03-28 10:37:24,663 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_modified():292] file/dir modified: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/wandb-summary.json
+2023-03-28 10:37:24,663 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_created():275] file/dir created: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/media/plotly/scene_plot_8_3741f66abf2a7eae15c2.plotly.json
+2023-03-28 10:37:24,664 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_modified():292] file/dir modified: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/media/plotly
+2023-03-28 10:37:25,596 INFO    Thread-39 :8376 [upload_job.py:push():139] Uploaded file /tmp/tmp8dujk25jwandb/1mx0uka1-media/plotly/scene_plot_8_3741f66abf2a7eae15c2.plotly.json
+2023-03-28 10:37:25,663 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_modified():292] file/dir modified: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/output.log
+2023-03-28 10:37:26,736 INFO    Thread-40 :8376 [upload_job.py:push():139] Uploaded file /tmp/tmp8dujk25jwandb/1rra7iaq-media/plotly/scene_plot_8_3741f66abf2a7eae15c2.plotly.json
+2023-03-28 10:37:29,070 DEBUG   HandlerThread:8376 [handler.py:handle_request():138] handle_request: stop_status
+2023-03-28 10:37:29,071 DEBUG   SenderThread:8376 [sender.py:send_request():315] send_request: stop_status
+2023-03-28 10:37:29,622 DEBUG   SenderThread:8376 [sender.py:send():301] send: files
+2023-03-28 10:37:29,623 INFO    SenderThread:8376 [sender.py:_save_file():1155] saving file media/plotly/scene_plot_9_b7ce4b9c4fbefd9e7d47.plotly.json with policy now
+2023-03-28 10:37:29,664 DEBUG   HandlerThread:8376 [handler.py:handle_request():138] handle_request: partial_history
+2023-03-28 10:37:29,665 DEBUG   SenderThread:8376 [sender.py:send():301] send: history
+2023-03-28 10:37:29,665 DEBUG   SenderThread:8376 [sender.py:send():301] send: summary
+2023-03-28 10:37:29,665 INFO    SenderThread:8376 [sender.py:_save_file():1155] saving file wandb-summary.json with policy end
+2023-03-28 10:37:29,666 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_modified():292] file/dir modified: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/wandb-summary.json
+2023-03-28 10:37:29,667 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_created():275] file/dir created: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/media/plotly/scene_plot_9_b7ce4b9c4fbefd9e7d47.plotly.json
+2023-03-28 10:37:29,667 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_modified():292] file/dir modified: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/media/plotly
+2023-03-28 10:37:30,726 INFO    Thread-41 :8376 [upload_job.py:push():139] Uploaded file /tmp/tmp8dujk25jwandb/142plioi-media/plotly/scene_plot_9_b7ce4b9c4fbefd9e7d47.plotly.json
+2023-03-28 10:37:31,668 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_modified():292] file/dir modified: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/output.log
+2023-03-28 10:37:31,856 INFO    Thread-42 :8376 [upload_job.py:push():139] Uploaded file /tmp/tmp8dujk25jwandb/3p8onmed-media/plotly/scene_plot_9_b7ce4b9c4fbefd9e7d47.plotly.json
+2023-03-28 10:37:34,834 DEBUG   SenderThread:8376 [sender.py:send():301] send: files
+2023-03-28 10:37:34,834 INFO    SenderThread:8376 [sender.py:_save_file():1155] saving file media/plotly/scene_plot_10_e345d45d1493d328c81d.plotly.json with policy now
+2023-03-28 10:37:34,876 DEBUG   HandlerThread:8376 [handler.py:handle_request():138] handle_request: partial_history
+2023-03-28 10:37:34,877 DEBUG   SenderThread:8376 [sender.py:send():301] send: history
+2023-03-28 10:37:34,877 DEBUG   SenderThread:8376 [sender.py:send():301] send: summary
+2023-03-28 10:37:34,877 INFO    SenderThread:8376 [sender.py:_save_file():1155] saving file wandb-summary.json with policy end
+2023-03-28 10:37:35,670 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_modified():292] file/dir modified: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/output.log
+2023-03-28 10:37:35,670 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_modified():292] file/dir modified: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/wandb-summary.json
+2023-03-28 10:37:35,670 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_created():275] file/dir created: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/media/plotly/scene_plot_10_e345d45d1493d328c81d.plotly.json
+2023-03-28 10:37:35,671 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_modified():292] file/dir modified: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/media/plotly
+2023-03-28 10:37:35,971 INFO    Thread-43 :8376 [upload_job.py:push():139] Uploaded file /tmp/tmp8dujk25jwandb/rlgfh2j4-media/plotly/scene_plot_10_e345d45d1493d328c81d.plotly.json
+2023-03-28 10:37:36,980 INFO    Thread-44 :8376 [upload_job.py:push():139] Uploaded file /tmp/tmp8dujk25jwandb/1d7g29rw-media/plotly/scene_plot_10_e345d45d1493d328c81d.plotly.json
+2023-03-28 10:37:39,581 DEBUG   SenderThread:8376 [sender.py:send():301] send: files
+2023-03-28 10:37:39,581 INFO    SenderThread:8376 [sender.py:_save_file():1155] saving file media/plotly/scene_plot_11_78f396a1b4beef21a475.plotly.json with policy now
+2023-03-28 10:37:39,624 DEBUG   HandlerThread:8376 [handler.py:handle_request():138] handle_request: partial_history
+2023-03-28 10:37:39,625 DEBUG   SenderThread:8376 [sender.py:send():301] send: history
+2023-03-28 10:37:39,625 DEBUG   SenderThread:8376 [sender.py:send():301] send: summary
+2023-03-28 10:37:39,626 INFO    SenderThread:8376 [sender.py:_save_file():1155] saving file wandb-summary.json with policy end
+2023-03-28 10:37:39,673 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_modified():292] file/dir modified: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/wandb-summary.json
+2023-03-28 10:37:39,673 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_created():275] file/dir created: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/media/plotly/scene_plot_11_78f396a1b4beef21a475.plotly.json
+2023-03-28 10:37:39,673 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_modified():292] file/dir modified: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/media/plotly
+2023-03-28 10:37:40,766 INFO    Thread-45 :8376 [upload_job.py:push():139] Uploaded file /tmp/tmp8dujk25jwandb/2ccipd3j-media/plotly/scene_plot_11_78f396a1b4beef21a475.plotly.json
+2023-03-28 10:37:41,674 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_modified():292] file/dir modified: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/output.log
+2023-03-28 10:37:41,892 INFO    Thread-46 :8376 [upload_job.py:push():139] Uploaded file /tmp/tmp8dujk25jwandb/26wzyl1y-media/plotly/scene_plot_11_78f396a1b4beef21a475.plotly.json
+2023-03-28 10:37:44,278 DEBUG   HandlerThread:8376 [handler.py:handle_request():138] handle_request: stop_status
+2023-03-28 10:37:44,278 DEBUG   SenderThread:8376 [sender.py:send_request():315] send_request: stop_status
+2023-03-28 10:37:44,440 DEBUG   HandlerThread:8376 [handler.py:handle_request():138] handle_request: partial_history
+2023-03-28 10:37:44,555 DEBUG   SenderThread:8376 [sender.py:send():301] send: files
+2023-03-28 10:37:44,555 INFO    SenderThread:8376 [sender.py:_save_file():1155] saving file media/plotly/scene_plot_12_67abdcb542909ce71559.plotly.json with policy now
+2023-03-28 10:37:44,556 DEBUG   SenderThread:8376 [sender.py:send():301] send: history
+2023-03-28 10:37:44,556 DEBUG   SenderThread:8376 [sender.py:send():301] send: summary
+2023-03-28 10:37:44,557 INFO    SenderThread:8376 [sender.py:_save_file():1155] saving file wandb-summary.json with policy end
+2023-03-28 10:37:44,676 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_modified():292] file/dir modified: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/wandb-summary.json
+2023-03-28 10:37:44,676 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_created():275] file/dir created: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/media/plotly/scene_plot_12_67abdcb542909ce71559.plotly.json
+2023-03-28 10:37:44,676 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_modified():292] file/dir modified: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/media/plotly
+2023-03-28 10:37:45,612 INFO    Thread-47 :8376 [upload_job.py:push():139] Uploaded file /tmp/tmp8dujk25jwandb/2z1mv89g-media/plotly/scene_plot_12_67abdcb542909ce71559.plotly.json
+2023-03-28 10:37:45,677 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_modified():292] file/dir modified: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/output.log
+2023-03-28 10:37:46,727 INFO    Thread-48 :8376 [upload_job.py:push():139] Uploaded file /tmp/tmp8dujk25jwandb/1rlgezpc-media/plotly/scene_plot_12_67abdcb542909ce71559.plotly.json
+2023-03-28 10:37:49,277 DEBUG   HandlerThread:8376 [handler.py:handle_request():138] handle_request: partial_history
+2023-03-28 10:37:49,278 DEBUG   SenderThread:8376 [sender.py:send():301] send: files
+2023-03-28 10:37:49,278 INFO    SenderThread:8376 [sender.py:_save_file():1155] saving file media/plotly/scene_plot_13_046f9111de279ce72016.plotly.json with policy now
+2023-03-28 10:37:49,278 DEBUG   SenderThread:8376 [sender.py:send():301] send: history
+2023-03-28 10:37:49,279 DEBUG   SenderThread:8376 [sender.py:send():301] send: summary
+2023-03-28 10:37:49,279 INFO    SenderThread:8376 [sender.py:_save_file():1155] saving file wandb-summary.json with policy end
+2023-03-28 10:37:49,679 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_modified():292] file/dir modified: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/wandb-summary.json
+2023-03-28 10:37:49,679 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_created():275] file/dir created: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/media/plotly/scene_plot_13_046f9111de279ce72016.plotly.json
+2023-03-28 10:37:49,680 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_modified():292] file/dir modified: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/media/plotly
+2023-03-28 10:37:51,109 INFO    Thread-49 :8376 [upload_job.py:push():139] Uploaded file /tmp/tmp8dujk25jwandb/2z3a2irx-media/plotly/scene_plot_13_046f9111de279ce72016.plotly.json
+2023-03-28 10:37:51,680 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_modified():292] file/dir modified: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/output.log
+2023-03-28 10:37:52,236 INFO    Thread-50 :8376 [upload_job.py:push():139] Uploaded file /tmp/tmp8dujk25jwandb/31qksnwl-media/plotly/scene_plot_13_046f9111de279ce72016.plotly.json
+2023-03-28 10:37:53,960 DEBUG   SenderThread:8376 [sender.py:send():301] send: files
+2023-03-28 10:37:53,960 INFO    SenderThread:8376 [sender.py:_save_file():1155] saving file media/plotly/scene_plot_14_e4a370642b990fb74b7e.plotly.json with policy now
+2023-03-28 10:37:54,000 DEBUG   HandlerThread:8376 [handler.py:handle_request():138] handle_request: partial_history
+2023-03-28 10:37:54,001 DEBUG   SenderThread:8376 [sender.py:send():301] send: history
+2023-03-28 10:37:54,001 DEBUG   SenderThread:8376 [sender.py:send():301] send: summary
+2023-03-28 10:37:54,001 INFO    SenderThread:8376 [sender.py:_save_file():1155] saving file wandb-summary.json with policy end
+2023-03-28 10:37:54,341 DEBUG   SenderThread:8376 [sender.py:send():301] send: stats
+2023-03-28 10:37:54,683 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_modified():292] file/dir modified: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/wandb-summary.json
+2023-03-28 10:37:54,683 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_created():275] file/dir created: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/media/plotly/scene_plot_14_e4a370642b990fb74b7e.plotly.json
+2023-03-28 10:37:54,683 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_modified():292] file/dir modified: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/media/plotly
+2023-03-28 10:37:54,978 INFO    Thread-51 :8376 [upload_job.py:push():139] Uploaded file /tmp/tmp8dujk25jwandb/14kxaioh-media/plotly/scene_plot_14_e4a370642b990fb74b7e.plotly.json
+2023-03-28 10:37:55,684 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_modified():292] file/dir modified: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/output.log
+2023-03-28 10:37:56,089 INFO    Thread-52 :8376 [upload_job.py:push():139] Uploaded file /tmp/tmp8dujk25jwandb/1p9ui1xr-media/plotly/scene_plot_14_e4a370642b990fb74b7e.plotly.json
+2023-03-28 10:37:58,848 DEBUG   SenderThread:8376 [sender.py:send():301] send: files
+2023-03-28 10:37:58,848 INFO    SenderThread:8376 [sender.py:_save_file():1155] saving file media/plotly/scene_plot_15_831d853aa9696a417304.plotly.json with policy now
+2023-03-28 10:37:58,892 DEBUG   HandlerThread:8376 [handler.py:handle_request():138] handle_request: partial_history
+2023-03-28 10:37:58,893 DEBUG   SenderThread:8376 [sender.py:send():301] send: history
+2023-03-28 10:37:58,893 DEBUG   SenderThread:8376 [sender.py:send():301] send: summary
+2023-03-28 10:37:58,893 INFO    SenderThread:8376 [sender.py:_save_file():1155] saving file wandb-summary.json with policy end
+2023-03-28 10:37:59,574 DEBUG   HandlerThread:8376 [handler.py:handle_request():138] handle_request: stop_status
+2023-03-28 10:37:59,574 DEBUG   SenderThread:8376 [sender.py:send_request():315] send_request: stop_status
+2023-03-28 10:37:59,686 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_modified():292] file/dir modified: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/output.log
+2023-03-28 10:37:59,686 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_modified():292] file/dir modified: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/wandb-summary.json
+2023-03-28 10:37:59,687 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_created():275] file/dir created: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/media/plotly/scene_plot_15_831d853aa9696a417304.plotly.json
+2023-03-28 10:37:59,687 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_modified():292] file/dir modified: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/media/plotly
+2023-03-28 10:38:00,019 INFO    Thread-53 :8376 [upload_job.py:push():139] Uploaded file /tmp/tmp8dujk25jwandb/30les6kk-media/plotly/scene_plot_15_831d853aa9696a417304.plotly.json
+2023-03-28 10:38:01,069 INFO    Thread-54 :8376 [upload_job.py:push():139] Uploaded file /tmp/tmp8dujk25jwandb/28p1frqy-media/plotly/scene_plot_15_831d853aa9696a417304.plotly.json
+2023-03-28 10:38:03,798 DEBUG   HandlerThread:8376 [handler.py:handle_request():138] handle_request: partial_history
+2023-03-28 10:38:03,798 DEBUG   SenderThread:8376 [sender.py:send():301] send: files
+2023-03-28 10:38:03,799 INFO    SenderThread:8376 [sender.py:_save_file():1155] saving file media/plotly/scene_plot_16_b1e1784c00b8b2914baa.plotly.json with policy now
+2023-03-28 10:38:03,799 DEBUG   SenderThread:8376 [sender.py:send():301] send: history
+2023-03-28 10:38:03,799 DEBUG   SenderThread:8376 [sender.py:send():301] send: summary
+2023-03-28 10:38:03,800 INFO    SenderThread:8376 [sender.py:_save_file():1155] saving file wandb-summary.json with policy end
+2023-03-28 10:38:04,689 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_modified():292] file/dir modified: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/wandb-summary.json
+2023-03-28 10:38:04,689 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_created():275] file/dir created: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/media/plotly/scene_plot_16_b1e1784c00b8b2914baa.plotly.json
+2023-03-28 10:38:04,690 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_modified():292] file/dir modified: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/media/plotly
+2023-03-28 10:38:05,037 INFO    Thread-55 :8376 [upload_job.py:push():139] Uploaded file /tmp/tmp8dujk25jwandb/hv8jpiyq-media/plotly/scene_plot_16_b1e1784c00b8b2914baa.plotly.json
+2023-03-28 10:38:05,690 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_modified():292] file/dir modified: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/output.log
+2023-03-28 10:38:06,261 INFO    Thread-56 :8376 [upload_job.py:push():139] Uploaded file /tmp/tmp8dujk25jwandb/1i8vnbhz-media/plotly/scene_plot_16_b1e1784c00b8b2914baa.plotly.json
+2023-03-28 10:38:08,543 DEBUG   SenderThread:8376 [sender.py:send():301] send: files
+2023-03-28 10:38:08,543 INFO    SenderThread:8376 [sender.py:_save_file():1155] saving file media/plotly/scene_plot_17_6ec3b4b405edcda34059.plotly.json with policy now
+2023-03-28 10:38:08,584 DEBUG   HandlerThread:8376 [handler.py:handle_request():138] handle_request: partial_history
+2023-03-28 10:38:08,584 DEBUG   SenderThread:8376 [sender.py:send():301] send: history
+2023-03-28 10:38:08,585 DEBUG   SenderThread:8376 [sender.py:send():301] send: summary
+2023-03-28 10:38:08,585 INFO    SenderThread:8376 [sender.py:_save_file():1155] saving file wandb-summary.json with policy end
+2023-03-28 10:38:08,692 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_modified():292] file/dir modified: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/wandb-summary.json
+2023-03-28 10:38:08,692 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_created():275] file/dir created: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/media/plotly/scene_plot_17_6ec3b4b405edcda34059.plotly.json
+2023-03-28 10:38:08,692 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_modified():292] file/dir modified: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/media/plotly
+2023-03-28 10:38:09,693 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_modified():292] file/dir modified: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/output.log
+2023-03-28 10:38:09,748 INFO    Thread-57 :8376 [upload_job.py:push():139] Uploaded file /tmp/tmp8dujk25jwandb/l58minmk-media/plotly/scene_plot_17_6ec3b4b405edcda34059.plotly.json
+2023-03-28 10:38:10,874 INFO    Thread-58 :8376 [upload_job.py:push():139] Uploaded file /tmp/tmp8dujk25jwandb/n1jxurkb-media/plotly/scene_plot_17_6ec3b4b405edcda34059.plotly.json
+2023-03-28 10:38:13,509 DEBUG   SenderThread:8376 [sender.py:send():301] send: files
+2023-03-28 10:38:13,510 INFO    SenderThread:8376 [sender.py:_save_file():1155] saving file media/plotly/scene_plot_18_f984d89da4785a424609.plotly.json with policy now
+2023-03-28 10:38:13,552 DEBUG   HandlerThread:8376 [handler.py:handle_request():138] handle_request: partial_history
+2023-03-28 10:38:13,553 DEBUG   SenderThread:8376 [sender.py:send():301] send: history
+2023-03-28 10:38:13,553 DEBUG   SenderThread:8376 [sender.py:send():301] send: summary
+2023-03-28 10:38:13,554 INFO    SenderThread:8376 [sender.py:_save_file():1155] saving file wandb-summary.json with policy end
+2023-03-28 10:38:13,696 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_modified():292] file/dir modified: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/wandb-summary.json
+2023-03-28 10:38:13,696 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_created():275] file/dir created: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/media/plotly/scene_plot_18_f984d89da4785a424609.plotly.json
+2023-03-28 10:38:13,697 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_modified():292] file/dir modified: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/media/plotly
+2023-03-28 10:38:14,666 INFO    Thread-59 :8376 [upload_job.py:push():139] Uploaded file /tmp/tmp8dujk25jwandb/vozb34e0-media/plotly/scene_plot_18_f984d89da4785a424609.plotly.json
+2023-03-28 10:38:14,832 DEBUG   HandlerThread:8376 [handler.py:handle_request():138] handle_request: stop_status
+2023-03-28 10:38:14,832 DEBUG   SenderThread:8376 [sender.py:send_request():315] send_request: stop_status
+2023-03-28 10:38:15,665 INFO    Thread-60 :8376 [upload_job.py:push():139] Uploaded file /tmp/tmp8dujk25jwandb/39gayaj5-media/plotly/scene_plot_18_f984d89da4785a424609.plotly.json
+2023-03-28 10:38:15,697 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_modified():292] file/dir modified: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/output.log
+2023-03-28 10:38:18,413 DEBUG   SenderThread:8376 [sender.py:send():301] send: files
+2023-03-28 10:38:18,413 INFO    SenderThread:8376 [sender.py:_save_file():1155] saving file media/plotly/scene_plot_19_a6b484a15a7d1d25ed36.plotly.json with policy now
+2023-03-28 10:38:18,414 DEBUG   HandlerThread:8376 [handler.py:handle_request():138] handle_request: partial_history
+2023-03-28 10:38:18,415 DEBUG   SenderThread:8376 [sender.py:send():301] send: history
+2023-03-28 10:38:18,415 DEBUG   SenderThread:8376 [sender.py:send():301] send: summary
+2023-03-28 10:38:18,415 INFO    SenderThread:8376 [sender.py:_save_file():1155] saving file wandb-summary.json with policy end
+2023-03-28 10:38:18,700 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_modified():292] file/dir modified: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/wandb-summary.json
+2023-03-28 10:38:18,700 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_created():275] file/dir created: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/media/plotly/scene_plot_19_a6b484a15a7d1d25ed36.plotly.json
+2023-03-28 10:38:18,700 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_modified():292] file/dir modified: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/media/plotly
+2023-03-28 10:38:19,700 INFO    Thread-18 :8376 [dir_watcher.py:_on_file_modified():292] file/dir modified: /home/stephen/Project/Ours/wandb/run-20230328_103624-wyndbs4c/files/output.log
+2023-03-28 10:38:19,782 INFO    Thread-61 :8376 [upload_job.py:push():139] Uploaded file /tmp/tmp8dujk25jwandb/m388kess-media/plotly/scene_plot_19_a6b484a15a7d1d25ed36.plotly.json
+2023-03-28 10:38:20,927 INFO    Thread-62 :8376 [upload_job.py:push():139] Uploaded file /tmp/tmp8dujk25jwandb/wx2xz2iw-media/plotly/scene_plot_19_a6b484a15a7d1d25ed36.plotly.json

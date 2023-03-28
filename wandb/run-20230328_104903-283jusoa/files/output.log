@@ -1,0 +1,96 @@
+
+loading models
+loading images
+image is loaded. width: 423, height: 594
+A face is detected. l: 44, t: 84, r: 356, b: 396
+landmarks detected.
+start rigid fitting
+
+100%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 1000/1000 [00:04<00:00, 219.54it/s]
+  0%|▎                                                                                                                                                 | 1/500 [00:00<07:25,  1.12it/s]
+done rigid fitting. lm_loss: 0.004219
+
+  2%|██▉                                                                                                                                              | 10/500 [00:03<02:38,  3.10it/s]/home/stephen/Project/Ours/fit_single_img.py:146: RuntimeWarning:
+More than 20 figures have been opened. Figures created through the pyplot interface (`matplotlib.pyplot.figure`) are retained until explicitly closed and may consume too much memory. (To control this warning, see the rcParam `figure.max_open_warning`).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████▍| 498/500 [02:41<00:01,  1.71it/s]
+done non rigid fitting. lm_loss: 0.015930	photo_loss: 57.971222	tex_loss: 0.018948	id_reg_loss: 214.958801	exp_reg_loss: 150.085098	tex_reg_loss: 292.864563	
+
+100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 500/500 [02:42<00:00,  3.08it/s]

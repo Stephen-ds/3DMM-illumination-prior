@@ -1,0 +1,28 @@
+{
+    "os": "Linux-5.19.0-38-generic-x86_64-with-glibc2.17",
+    "python": "3.8.12",
+    "heartbeatAt": "2023-03-28T09:38:45.929636",
+    "startedAt": "2023-03-28T09:38:45.295182",
+    "docker": null,
+    "gpu": "NVIDIA GeForce RTX 3060 Laptop GPU",
+    "gpu_count": 1,
+    "cpu_count": 12,
+    "cuda": null,
+    "args": [
+        "--img_path=data/000002.jpg",
+        "--res_folder=results",
+        "--tar_size=90"
+    ],
+    "state": "running",
+    "program": "/home/stephen/Project/Ours/fit_single_img.py",
+    "codePath": "fit_single_img.py",
+    "git": {
+        "remote": "https://github.com/Stephen-ds/3DMM-illumination-prior.git",
+        "commit": "2a0cbe267e0e493661e9eeba76dea9990d3b6440"
+    },
+    "email": "s.dapratoshepard@gmail.com",
+    "root": "/home/stephen/Project/Ours",
+    "host": "stephen-Legion-5-15ITH6H",
+    "username": "stephen",
+    "executable": "/home/stephen/anaconda3/envs/reni/bin/python"
+}
