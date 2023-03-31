@@ -48,7 +48,7 @@ config = chkpt['hyper_parameters']['config']
 
 ### DATASET ###
 # setup the dataset for your task, here we will just use the RENI_HDR test set
-H, W = 64, 128
+H, W = 512, 256
 transform_list = [["resize", [H, W]], ["minmaxnormalise", [-18.0536, 11.4633]]]
 transforms = transform_builder(transform_list)
 dataset = RENIDatasetHDR('RENI/data/RENI_HDR/Test/', transforms=transforms)
@@ -134,7 +134,7 @@ for epoch in range(epochs):
 
         # generate model output
         model_output = model(Z, D) # Input -> ((B, latent_dim, 3), (B, H*W, 3)), Output -> (B, H*W, 3)
-        torch.save(model_output, 'out.pt')
+        #torch.save(model_output, 'out.pt')
 
         # compute loss 
         opt.zero_grad()

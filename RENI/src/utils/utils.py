@@ -46,6 +46,50 @@ def sRGB(imgs):
     imgs = torch.where(imgs<=0.0031308, small_u, big_u)
     return imgs
 
+def sRGB_old(image: torch.Tensor) -> torch.Tensor:
+    r"""Convert a linear RGB image to sRGB. Used in colorspace conversions.
+
+    Args:
+        image: linear RGB Image to be converted to sRGB of shape :math:`(*,3,H,W)`.
+
+    Returns:
+        sRGB version of the image with shape of shape :math:`(*,3,H,W)`.
+
+    Example:
+        >>> input = torch.rand(2, 3, 4, 5)
+        >>> output = linear_rgb_to_rgb(input) # 2x3x4x5
+    """
+    if not isinstance(image, torch.Tensor):
+        raise TypeError(f"Input type is not a torch.Tensor. Got {type(image)}")
+
+
+    q = torch.quantile(torch.quantile(torch.quantile(image, 0.98, dim=(1)), 0.98, dim=(1)), 0.98, dim=(1))
+    image = image / q.unsqueeze(1).unsqueeze(2).unsqueeze(3)
+    image = torch.clamp(image, 0.0, 1.0)
+    image = image.permute(0,3,1,2)
+
+    if len(image.shape) < 3 or image.shape[-3] != 3:
+        raise ValueError(f"Input size must have a shape of (*, 3, H, W).Got {image.shape}")
+
+    threshold = 0.0031308
+    rgb: torch.Tensor = torch.where(
+        image > threshold, 1.055 * torch.pow(image.clamp(min=threshold), 1 / 2.4) - 0.055, 12.92 * image
+    )
+
+    return rgb.permute(0,2,3,1)
+
+def sRGB_old_old(img):
+    img = img.squeeze()
+    img = img / torch.quantile(img, 0.98)
+    img = torch.clamp(img, 0.0, 1.0)
+    img = torch.where(
+        img <= 0.0031308,
+        12.92 * img,
+        1.055 * torch.pow(torch.abs(img), 1 / 2.4) - 0.055,
+    )
+    img = img.unsqueeze(0)
+    return img
+
 
 # Generates the unit vector associated with the direction of each pixel in the panoramic image
 def get_directions(sidelen):

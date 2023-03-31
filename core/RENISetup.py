@@ -11,19 +11,6 @@ from PIL import Image
 
 import torch
 
-
-#here obviously needs to be properly done
-def init_envmap(img_size):
-    model_output = torch.ones(1,2048,3)
-    directions = get_directions(img_size)
-    sineweight = get_sineweight(img_size)
-    envmap = EnvironmentMap(
-        environment_map=model_output,
-        directions=directions,
-        sineweight=sineweight,
-    )
-    return envmap
-
 def get_render(self, model_output, directions, sineweight, envmap):      
     render, _ = self.renderer(
         meshes_world=self.mesh, R=self.R, T=self.T, envmap=envmap
@@ -32,15 +19,16 @@ def get_render(self, model_output, directions, sineweight, envmap):
 
 
 class RENI():
-    def __init__(self, device, img_size):
+    def __init__(self, H, W, device):
         self.device = device
-        self.img_size = img_size
+        #self.img_size = img_size
 
         chkpt_path = 'RENI/models/latent_dim_36_net_5_256_vad_cbc_tanh_hdr/version_0/checkpoints/fit_inverse_epoch=2209.ckpt'
         self.chkpt = torch.load(chkpt_path, map_location=self.device)
         self.config = self.chkpt['hyper_parameters']['config']
 
-        self.H, self.W = self.img_size, self.img_size
+        self.H = H
+        self.W = W
 
         dataset_size = 1
         equivariance = self.config.RENI.EQUIVARIANCE
@@ -84,8 +72,8 @@ class RENI():
 
         return unnormalise(img)
 
-    def to_sRGB(self, img):
-        img = img.view(-1, self.H, self.W, 3)
+    def to_sRGB(self, img, H, W):
+        img = img.view(-1, H, W, 3)
         img = img.permute(0,3,1,2)
         #img = sRGB(img)
         img = linear_rgb_to_rgb(img)

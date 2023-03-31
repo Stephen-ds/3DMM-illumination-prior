@@ -4,15 +4,22 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-        {"name":"Python: Current File","type":"python","request":"launch","program":"${file}","console":"integratedTerminal","justMyCode":true},
+        {"name":"Python: Current File","type":"python","request":"launch","program":"${file}","console":"integratedTerminal","justMyCode":false},
         {
             "name": "Pargs",
             "type": "python",
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal",
-            "justMyCode": true,
-            "args": ["--img_path=data/000002.jpg", "--res_folder=results", "--tar_size=64"],
+            "justMyCode": false,
+            "args": ["--img_path=data/000002.jpg", "--res_folder=results", 
+                    "--tar_size=128", "--first_nrf_iters=500", "--id_reg_w=0.001",
+                    "--tex_reg_w=1.7e-06", "--rgb_loss_w=1.6", "--lm_loss_w=1000",
+                    "--exp_reg_w=0.0008", "--tex_w=1", "--trans_reg_w=1", "--reni_reg_w=0.0001"],
+            // "args": ["--img_path=data/000002.jpg", "--res_folder=results", 
+            //         "--tar_size=224", "--first_nrf_iters=500", "--id_reg_w=3e-4",
+            //          "--exp_reg_w=2.4e-4","--tex_reg_w=5.1e-7", "--rgb_loss_w=1.9",
+            //           "--lm_loss_w=1.6e-3", "--tex_w=5"],
             "purpose": ["debug-in-terminal"]
         }
     ]

@@ -5,6 +5,7 @@ from pytorch3d.structures import Meshes
 from pytorch3d.io import IO
 
 from core.BaseModel import BaseReconModel
+from RENI.src.utils.utils import sRGB_old
 
 #from core.RENISetup import init_envmap
 from RENI.src.utils.utils import sRGB
@@ -83,7 +84,7 @@ class BFM09ReconModel(BaseReconModel):
                             angles, gamma, translation], dim=1)
         return coeffs
 
-    def forward(self, coeffs, envmap=None, render=True, render_diffuse=False):
+    def forward(self, coeffs, envmap=None, render=True):
         batch_num = coeffs.shape[0]
         #here - gamma
         id_coeff, exp_coeff, tex_coeff, angles, gamma, translation = self.split_coeffs(
@@ -119,16 +120,20 @@ class BFM09ReconModel(BaseReconModel):
             #IO.save_mesh()
             
             #envmap = init_envmap(img_size=self.img_size)
-            if render_diffuse:
-                rendered_img = self.renderer_diffuse(mesh, envmap=envmap)
-            else:
-                rendered_img = self.renderer(mesh, envmap=envmap)[0]
+            rendered_img = self.renderer(mesh, envmap=envmap)
+            normals = rendered_img[3]
+            albedo_img = rendered_img[2]
+            lighting_img = sRGB_old(rendered_img[1])
+            rendered_img = sRGB_old(rendered_img[0])
             #here might need to think about this clamping
             #rendered_img = torch.clamp(rendered_img[0], 0, 255)
             #here need to think about face_color - it is face_texture
             # with illumination added. See where RENI renderer adds this
             # and maybe you can return it from inside there
             return {'rendered_img': rendered_img,
+                    'albedo_img': albedo_img,
+                    'lighting_img': lighting_img,
+                    'normals': normals,
                     'lms_proj': lms_proj,
                     'face_texture': face_texture,
                     'vs': vs_t,
@@ -159,7 +164,7 @@ class BFM09ReconModel(BaseReconModel):
 
         #3 because 3 rgb channels
         face_texture = face_texture.view(n_b, -1, 3)
-        return face_texture
+        return face_texture/255
 
     def get_skinmask(self):
         return self.skinmask

@@ -45,7 +45,7 @@ def reflectance_loss(tex, skin_mask):
 
     skin_mask = skin_mask.unsqueeze(2)
     tex_mean = torch.sum(tex*skin_mask, 1, keepdims=True)/torch.sum(skin_mask)
-    loss = torch.sum(torch.square((tex-tex_mean)*skin_mask/255.)) / \
+    loss = torch.sum(torch.square((tex-tex_mean)*skin_mask)) / \
         (tex.shape[0]*torch.sum(skin_mask))
 
     return loss

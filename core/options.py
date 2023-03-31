@@ -41,6 +41,8 @@ class BaseOptions():
                                  help='weight for rotation regularizer')
         self.parser.add_argument('--trans_reg_w', type=float, default=1,
                                  help='weight for translation regularizer')
+        self.parser.add_argument('--reni_reg_w', type=float, default=1.0,
+                                 help='weight for reni latent code regularizer')
 
         self.parser.add_argument('--tex_w', type=float, default=1,
                                  help='weight for texture reflectance loss.')
@@ -48,6 +50,7 @@ class BaseOptions():
                                  help='path for the cache folder')
         self.parser.add_argument('--nframes_shape', type=int, default=16,
                                  help='number of frames used to estimate shape coefficient in video fitting')
+        
         self.parser.add_argument('--res_folder', type=str, required=True,
                                  help='output path for the image')
 
