@@ -41,6 +41,8 @@ class BaseReconModel(nn.Module):
         self.trans_tensor = None
         #here
         self.gamma_tensor = None
+        self.kd_tensor = None
+        self.shine_tensor = None
 
         self.init_coeff_dims()
 
@@ -64,7 +66,7 @@ class BaseReconModel(nn.Module):
         return torch.tensor(reverse_z, device=device)
 
     def _get_renderer(self, device):
-        return rRender.build_renderer(self.img_size, self.focal, 1, device)
+        return rRender.build_renderer(self.img_size, self.focal, device)
     
     def _get_renderer_albedo(self, device):
         return rRender.build_renderer_albedo(self.img_size, self.focal, 1, device)
@@ -204,6 +206,12 @@ class BaseReconModel(nn.Module):
     #here
     def get_gamma_tensor(self):
         return self.gamma_tensor
+    
+    def get_kd_tensor(self):
+        return self.kd_tensor
+    
+    def get_shine_tensor(self):
+        return self.shine_tensor
 
     def init_coeff_dims(self):
         raise NotImplementedError()
@@ -214,7 +222,9 @@ class BaseReconModel(nn.Module):
                                  self.exp_tensor,
                                  self.tex_tensor.repeat(self.batch_size, 1),
                                  self.rot_tensor, self.gamma_tensor,
-                                 self.trans_tensor)
+                                 self.trans_tensor,
+                                 self.kd_tensor,
+                                 self.shine_tensor)
 
     def init_coeff_tensors(self, id_coeff=None, tex_coeff=None):
         if id_coeff is None:
@@ -249,4 +259,8 @@ class BaseReconModel(nn.Module):
             requires_grad=True, device=self.device)
         self.rot_tensor = torch.zeros(
             (self.batch_size, 3), dtype=torch.float32,
+            requires_grad=True, device=self.device)
+        self.kd_tensor = torch.full((self.batch_size, 1), 0.9, dtype=torch.float32,
+            requires_grad=True, device=self.device)
+        self.shine_tensor = torch.full((self.batch_size, 1), 0.2, dtype=torch.float32,
             requires_grad=True, device=self.device)

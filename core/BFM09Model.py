@@ -60,6 +60,7 @@ class BFM09ReconModel(BaseReconModel):
         self.point_buf = torch.tensor(model_dict['point_buf']-1,
                                       dtype=torch.int64, requires_grad=False,
                                       device=self.device)
+        
 
     def get_lms(self, vs):
         lms = vs[:, self.kp_inds, :]
@@ -74,20 +75,22 @@ class BFM09ReconModel(BaseReconModel):
         # lighting coeff for 3 channel SH function of dim 27
         #here - gamma
         gamma = coeffs[:, 227:254]
-        translation = coeffs[:, 254:]  # translation coeff of dim 3
+        translation = coeffs[:, 254:257]  # translation coeff of dim 3
+        kd = coeffs[:,257:258] #kd coeff of dim 1
+        shine = coeffs[:,258:259] #shine coeff of dim 1
 
-        return id_coeff, exp_coeff, tex_coeff, angles, gamma, translation
+        return id_coeff, exp_coeff, tex_coeff, angles, gamma, translation, kd, shine
 
     #here - gamma
-    def merge_coeffs(self, id_coeff, exp_coeff, tex_coeff, angles, gamma, translation):
+    def merge_coeffs(self, id_coeff, exp_coeff, tex_coeff, angles, gamma, translation, kd, shine):
         coeffs = torch.cat([id_coeff, exp_coeff, tex_coeff,
-                            angles, gamma, translation], dim=1)
+                            angles, gamma, translation, kd, shine], dim=1)
         return coeffs
 
     def forward(self, coeffs, envmap=None, render=True):
         batch_num = coeffs.shape[0]
         #here - gamma
-        id_coeff, exp_coeff, tex_coeff, angles, gamma, translation = self.split_coeffs(
+        id_coeff, exp_coeff, tex_coeff, angles, gamma, translation, kd, shine = self.split_coeffs(
             coeffs)
 
         vs = self.get_vs(id_coeff, exp_coeff)
@@ -120,11 +123,12 @@ class BFM09ReconModel(BaseReconModel):
             #IO.save_mesh()
             
             #envmap = init_envmap(img_size=self.img_size)
-            rendered_img = self.renderer(mesh, envmap=envmap)
+            rendered_img = self.renderer(mesh, envmap=envmap, kd=kd, shininess=shine)
             normals = rendered_img[3]
             albedo_img = rendered_img[2]
-            lighting_img = sRGB_old(rendered_img[1])
-            rendered_img = sRGB_old(rendered_img[0])
+            specular_img = rendered_img[1]
+            mask = rendered_img[4]
+            rendered_img = rendered_img[0]
             #here might need to think about this clamping
             #rendered_img = torch.clamp(rendered_img[0], 0, 255)
             #here need to think about face_color - it is face_texture
@@ -132,8 +136,9 @@ class BFM09ReconModel(BaseReconModel):
             # and maybe you can return it from inside there
             return {'rendered_img': rendered_img,
                     'albedo_img': albedo_img,
-                    'lighting_img': lighting_img,
+                    'specular_img': specular_img,
                     'normals': normals,
+                    'mask': mask,
                     'lms_proj': lms_proj,
                     'face_texture': face_texture,
                     'vs': vs_t,

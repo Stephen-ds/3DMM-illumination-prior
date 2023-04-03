@@ -17,6 +17,26 @@ def pad_bbox(bbox, img_wh, padding_ratio=0.2):
 
     return [x1, y1, x1+size_bb, y1+size_bb]
 
+def pad_img(bbox, img, padding_ratio=0.2):
+    bbox[[0,1]] = np.floor(bbox[[0,1]])
+    bbox[[2,3]] = np.ceil(bbox[[2,3]])
+    bbox = bbox.astype(np.uint16)
+    width = bbox[2] - bbox[0]
+    height = bbox[3] - bbox[1]
+    sidelen = np.floor(max(width, height) * (1 + padding_ratio)).astype(np.uint16)
+    padded_img = np.zeros((sidelen, sidelen, 3), dtype=np.uint8)
+
+    x_offset = (sidelen - width) // 2
+    y_offset = (sidelen - height) // 2
+    px2 = x_offset + bbox[2] - bbox[0]
+    py2 = y_offset + bbox[3] - bbox[1]
+    #bbox = np.ceil(bbox).astype(np.uint8)
+    padded_img[y_offset:py2, x_offset:px2, :] = img[bbox[1]:bbox[3], bbox[0]:bbox[2], :]
+
+    bbox_offset = np.asarray([bbox[0] - x_offset, bbox[1] - y_offset, bbox[2] + x_offset, bbox[3] + y_offset])
+
+    return padded_img, sidelen, bbox, bbox_offset
+
 
 def mymkdirs(path):
     if not os.path.exists(path):
