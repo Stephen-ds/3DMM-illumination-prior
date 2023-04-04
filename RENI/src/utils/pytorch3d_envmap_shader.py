@@ -118,12 +118,9 @@ def blinn_phong_shading_env_map(
     bp_specular_normalisation_factor = (shininess + 2) / (
         4 * (2 - torch.exp(-shininess / 2))
     )
-    # diffuse = diffuse.permute(0,3,1,2)
-    # diffuse = linear_rgb_to_rgb(diffuse)
-    # diffuse = diffuse.permute(0,2,3,1)
-    #colors = diffuse * texels
-    colors = kd * diffuse * texels + bp_specular_normalisation_factor * ks * specular
-    return colors, specular * bp_specular_normalisation_factor, pixel_normals
+
+    colors = (kd * diffuse * texels) + (bp_specular_normalisation_factor * ks * specular)
+    return colors, specular * bp_specular_normalisation_factor * ks, pixel_normals
 
 
 class BlinnPhongShaderEnvMap(nn.Module):

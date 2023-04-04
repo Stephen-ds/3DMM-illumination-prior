@@ -18,24 +18,35 @@ def pad_bbox(bbox, img_wh, padding_ratio=0.2):
     return [x1, y1, x1+size_bb, y1+size_bb]
 
 def pad_img(bbox, img, padding_ratio=0.2):
-    bbox[[0,1]] = np.floor(bbox[[0,1]])
-    bbox[[2,3]] = np.ceil(bbox[[2,3]])
+    #Pad the bounding boxes according to padding ratio, making sure to not
+    #go out of image bounds
+    bbox[0] = np.floor(max(bbox[0] * (1 - padding_ratio), 0))
+    bbox[1] = np.floor(max(bbox[1] * (1 - padding_ratio), 0))
+    bbox[2] = np.ceil(min(bbox[2] * (1 + padding_ratio), img.shape[0]))
+    bbox[3] = np.ceil(min(bbox[3] * (1 + padding_ratio), img.shape[0]))
     bbox = bbox.astype(np.uint16)
+
+    #Create new array for the padded image
+    #Black pixels fill to give square image
     width = bbox[2] - bbox[0]
     height = bbox[3] - bbox[1]
-    sidelen = np.floor(max(width, height) * (1 + padding_ratio)).astype(np.uint16)
+    sidelen = (max(width, height)).astype(np.uint16)
     padded_img = np.zeros((sidelen, sidelen, 3), dtype=np.uint8)
 
+    #Bounding box coordinates in padded image space
     x_offset = (sidelen - width) // 2
     y_offset = (sidelen - height) // 2
     px2 = x_offset + bbox[2] - bbox[0]
     py2 = y_offset + bbox[3] - bbox[1]
-    #bbox = np.ceil(bbox).astype(np.uint8)
-    padded_img[y_offset:py2, x_offset:px2, :] = img[bbox[1]:bbox[3], bbox[0]:bbox[2], :]
+    bbox_offset = np.asarray([x_offset,y_offset, px2, py2])
 
-    bbox_offset = np.asarray([bbox[0] - x_offset, bbox[1] - y_offset, bbox[2] + x_offset, bbox[3] + y_offset])
+    #Place the padded image in the new array
+    padded_img[bbox_offset[1]:bbox_offset[3], bbox_offset[0]:bbox_offset[2], :] = \
+        img[bbox[1]:bbox[3], bbox[0]:bbox[2], :]
+    
 
     return padded_img, sidelen, bbox, bbox_offset
+
 
 
 def mymkdirs(path):

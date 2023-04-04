@@ -8,8 +8,8 @@ def photo_loss(pred_img, gt_img, img_mask):
     ind_mask = torch.sum(gt_img,3).nonzero(as_tuple=True)
     
     loss = torch.sqrt(torch.sum(torch.square(
-        pred_img[ind_mask] - gt_img[ind_mask]), ))*img_mask[ind_mask]
-    loss = torch.sum(loss) / torch.sum(img_mask)
+        pred_img[ind_mask] - gt_img[ind_mask]), 1)) * img_mask[ind_mask]
+    loss = torch.sum(loss) / torch.sum(img_mask[ind_mask])
     loss = torch.mean(loss)
 
     return loss
