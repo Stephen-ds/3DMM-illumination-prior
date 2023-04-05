@@ -20,10 +20,12 @@ def pad_bbox(bbox, img_wh, padding_ratio=0.2):
 def pad_img(bbox, img, padding_ratio=0.2):
     #Pad the bounding boxes according to padding ratio, making sure to not
     #go out of image bounds
-    bbox[0] = np.floor(max(bbox[0] * (1 - padding_ratio), 0))
-    bbox[1] = np.floor(max(bbox[1] * (1 - padding_ratio), 0))
-    bbox[2] = np.ceil(min(bbox[2] * (1 + padding_ratio), img.shape[0]))
-    bbox[3] = np.ceil(min(bbox[3] * (1 + padding_ratio), img.shape[0]))
+    scale_w = (bbox[2] - bbox[0]) * padding_ratio
+    scale_h = (bbox[3] - bbox[1]) * padding_ratio
+    bbox[0] = np.floor(max(bbox[0] - scale_w, 0))
+    bbox[1] = np.floor(max(bbox[1] - scale_h, 0))
+    bbox[2] = np.ceil(min(bbox[2] + scale_w, img.shape[0]))
+    bbox[3] = np.ceil(min(bbox[3] + scale_w, img.shape[0]))
     bbox = bbox.astype(np.uint16)
 
     #Create new array for the padded image

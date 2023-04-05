@@ -260,7 +260,7 @@ class BaseReconModel(nn.Module):
         self.rot_tensor = torch.zeros(
             (self.batch_size, 3), dtype=torch.float32,
             requires_grad=True, device=self.device)
-        self.kd_tensor = torch.full((self.batch_size, 1), 0.5, dtype=torch.float32,
+        self.kd_tensor = torch.full((self.batch_size, 1), 0.2, dtype=torch.float32,
             requires_grad=True, device=self.device)
         self.shine_tensor = torch.full((self.batch_size, 1), 0.2, dtype=torch.float32,
             requires_grad=True, device=self.device)

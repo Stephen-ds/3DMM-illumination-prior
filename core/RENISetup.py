@@ -23,7 +23,7 @@ class RENI():
         self.device = device
         #self.img_size = img_size
 
-        chkpt_path = 'RENI/models/latent_dim_36_net_5_256_vad_cbc_tanh_hdr/version_0/checkpoints/fit_inverse_epoch=2209.ckpt'
+        chkpt_path = 'RENI/models/latent_dim_36_net_5_256_vad_cbc_tanh_hdr/version_0/checkpoints/fit_decoder_epoch=1589.ckpt'
         self.chkpt = torch.load(chkpt_path, map_location=self.device)
         self.config = self.chkpt['hyper_parameters']['config']
 
@@ -56,9 +56,6 @@ class RENI():
 
         model.load_state_dict(self.chkpt['state_dict'], device=self.device)
         model.to(self.device)
-        #model = torch.nn.parallel.DistributedDataParallel(
-        #    model, device_ids=[self.device], output_device=self.device
-        #)
 
         self.model = model
 

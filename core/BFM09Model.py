@@ -124,10 +124,10 @@ class BFM09ReconModel(BaseReconModel):
             
             #envmap = init_envmap(img_size=self.img_size)
             rendered_img = self.renderer(mesh, envmap=envmap, kd=kd, shininess=shine)
-            normals = rendered_img[3]
-            albedo_img = rendered_img[2]
-            specular_img = rendered_img[1]
-            mask = rendered_img[4]
+            normals = rendered_img[2]
+            albedo_img = rendered_img[1]
+            #specular_img = rendered_img[1]
+            mask = rendered_img[3]
             rendered_img = rendered_img[0]
             #here might need to think about this clamping
             #rendered_img = torch.clamp(rendered_img[0], 0, 255)
@@ -136,7 +136,7 @@ class BFM09ReconModel(BaseReconModel):
             # and maybe you can return it from inside there
             return {'rendered_img': rendered_img,
                     'albedo_img': albedo_img,
-                    'specular_img': specular_img,
+                    #'specular_img': specular_img,
                     'normals': normals,
                     'mask': mask,
                     'lms_proj': lms_proj,
@@ -169,6 +169,7 @@ class BFM09ReconModel(BaseReconModel):
 
         #3 because 3 rgb channels
         face_texture = face_texture.view(n_b, -1, 3)
+        face_texture = torch.clamp(face_texture, 0.0, 255.0)
         return face_texture/255
 
     def get_skinmask(self):

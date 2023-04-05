@@ -40,7 +40,7 @@ def fit(args):
                                   device=args.device,
                                   batch_size=1,
                                   img_size=args.tar_size)
-    reni = RENI(32, 64, device=args.device)
+    reni = RENI(50, 100, device=args.device)
     reni_model = reni.model
 
     print('loading images')
@@ -189,11 +189,11 @@ def fit(args):
             render_out_albedo = rendered_img_albedo.cpu().numpy().squeeze().astype(np.uint8)
             writer.add_image('albedo', render_out_albedo*out_mask, global_step=i)
 
-            # Predicted specular contribution
-            rendered_img_specular = pred_dict['specular_img']
-            render_out_specular = rendered_img_specular.detach().permute(3,1,2,0)*255
-            render_out_specular = render_out_specular.cpu().numpy().squeeze().astype(np.uint8)
-            writer.add_image('specular', render_out_specular, global_step=i)
+            ## Predicted specular contribution
+            # rendered_img_specular = pred_dict['specular_img']
+            # render_out_specular = rendered_img_specular.detach().permute(3,1,2,0)*255
+            # render_out_specular = render_out_specular.cpu().numpy().squeeze().astype(np.uint8)
+            # writer.add_image('specular', render_out_specular, global_step=i)
 
             # Predicted face normal map
             normal_map = pred_dict['normals'].detach().cpu().numpy().squeeze()
