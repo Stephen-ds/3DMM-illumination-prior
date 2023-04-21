@@ -7,3 +7,5 @@ RENI/README.md
 README.md
 requirements.txt
 runs/
+wandb/
+results/run/

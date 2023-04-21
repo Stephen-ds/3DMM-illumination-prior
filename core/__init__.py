@@ -1,4 +1,5 @@
 from core.BFM09Model import BFM09ReconModel
+from core.FLAMEReconModel import FLAMEReconModel
 from scipy.io import loadmat
 
 
@@ -7,6 +8,9 @@ def get_recon_model(model='bfm09', **kargs):
         model_path = 'BFM/BFM09_model_info.mat'
         model_dict = loadmat(model_path)
         recon_model = BFM09ReconModel(model_dict, **kargs)
+        return recon_model
+    elif model == 'flame':
+        recon_model = FLAMEReconModel(**kargs)
         return recon_model
     else:
         raise NotImplementedError()

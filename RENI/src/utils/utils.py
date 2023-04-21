@@ -66,7 +66,7 @@ def sRGB_old(image: torch.Tensor) -> torch.Tensor:
     q = torch.quantile(torch.quantile(torch.quantile(image, 0.98, dim=(1)), 0.98, dim=(1)), 0.98, dim=(1))
     image = image / q.unsqueeze(1).unsqueeze(2).unsqueeze(3)
     image = torch.clamp(image, 0.0, 1.0)
-    image = image.permute(0,3,1,2)
+    #image = image.permute(0,3,1,2)
 
     if len(image.shape) < 3 or image.shape[-3] != 3:
         raise ValueError(f"Input size must have a shape of (*, 3, H, W).Got {image.shape}")
@@ -76,7 +76,8 @@ def sRGB_old(image: torch.Tensor) -> torch.Tensor:
         image > threshold, 1.055 * torch.pow(image.clamp(min=threshold), 1 / 2.4) - 0.055, 12.92 * image
     )
 
-    return rgb.permute(0,2,3,1)
+    #return rgb.permute(0,2,3,1)
+    return rgb
 
 def sRGB_old_old(img):
     img = img.squeeze()

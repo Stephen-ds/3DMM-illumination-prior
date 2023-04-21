@@ -10,6 +10,10 @@ from RENI.src.utils.utils import sRGB_old
 #from core.RENISetup import init_envmap
 from RENI.src.utils.utils import sRGB
 
+from Flame.utils.config import cfg
+from Flame.models.FLAME import FLAME, FLAMETex
+from Flame.utils.renderer import Renderer
+
 from pytorch3d.renderer import (
     look_at_view_transform,
     FoVPerspectiveCameras,
@@ -23,9 +27,15 @@ from pytorch3d.renderer import (
 )
 
 
-class BFM09ReconModel(BaseReconModel):
+class FLAMEReconModel(BaseReconModel):
     def __init__(self, model_dict, **kargs):
-        super(BFM09ReconModel, self).__init__(**kargs)
+        super(FLAMEReconModel, self).__init__(**kargs)
+
+        self.cfg = cfg
+        self.flame = FLAME(self.cfg).to(self.device)
+        self.flametex = FLAMETex(self.cfg).to(self.device)
+
+        self.renderer = self._get_renderer()
 
         self.skinmask = torch.tensor(
             model_dict['skinmask'], requires_grad=False, device=self.device)
@@ -61,6 +71,8 @@ class BFM09ReconModel(BaseReconModel):
                                       dtype=torch.int64, requires_grad=False,
                                       device=self.device)
         
+    def _get_renderer(self):
+        return Renderer(self.img_size, obj_filename=self.cfg.mesh_file).to(self.device)
 
     def get_lms(self, vs):
         lms = vs[:, self.kp_inds, :]
@@ -176,7 +188,7 @@ class BFM09ReconModel(BaseReconModel):
         return self.skinmask
 
     def init_coeff_dims(self):
-        self.id_dims = 80
-        self.tex_dims = 80
-        self.exp_dims = 64
-        self.pose_dims = 0
+        self.id_dims = cfg.shape_params
+        self.tex_dims = cfg.tex_params
+        self.exp_dims = cfg.expression_params
+        self.pose_dims = cfg.pose_params
