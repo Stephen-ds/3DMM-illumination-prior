@@ -72,6 +72,10 @@ class FLAMEReconModel(BaseReconModel):
                                       device=self.device)
         
     def _get_renderer(self):
+        R, T = look_at_view_transform(10, 0, 0)  # camera's position
+        cameras = FoVPerspectiveCameras(device=self.device, R=R, T=T, znear=0.01,
+                                        zfar=50,
+                                        fov=2*np.arctan(self.img_size//2/self.focal)*180./np.pi)
         return Renderer(self.img_size, obj_filename=self.cfg.mesh_file).to(self.device)
 
     def get_lms(self, vs):

@@ -46,7 +46,7 @@ def sRGB(imgs):
     imgs = torch.where(imgs<=0.0031308, small_u, big_u)
     return imgs
 
-def sRGB_old(image: torch.Tensor) -> torch.Tensor:
+def sRGB_old(image: torch.Tensor, permute = True) -> torch.Tensor:
     r"""Convert a linear RGB image to sRGB. Used in colorspace conversions.
 
     Args:
@@ -66,7 +66,8 @@ def sRGB_old(image: torch.Tensor) -> torch.Tensor:
     q = torch.quantile(torch.quantile(torch.quantile(image, 0.98, dim=(1)), 0.98, dim=(1)), 0.98, dim=(1))
     image = image / q.unsqueeze(1).unsqueeze(2).unsqueeze(3)
     image = torch.clamp(image, 0.0, 1.0)
-    #image = image.permute(0,3,1,2)
+    if permute:
+        image = image.permute(0,3,1,2)
 
     if len(image.shape) < 3 or image.shape[-3] != 3:
         raise ValueError(f"Input size must have a shape of (*, 3, H, W).Got {image.shape}")
@@ -76,7 +77,8 @@ def sRGB_old(image: torch.Tensor) -> torch.Tensor:
         image > threshold, 1.055 * torch.pow(image.clamp(min=threshold), 1 / 2.4) - 0.055, 12.92 * image
     )
 
-    #return rgb.permute(0,2,3,1)
+    if permute:
+        rgb = rgb.permute(0,2,3,1)
     return rgb
 
 def sRGB_old_old(img):

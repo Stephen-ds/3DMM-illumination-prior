@@ -230,7 +230,6 @@ class BlinnPhongShaderEnvMap(nn.Module):
         alpha = softmax_rgb_blend(
             colors, fragments, blend_params, znear=znear, zfar=zfar
         )
-
         colors = sRGB_old(colors)
         #specular = sRGB_old(specular)
         #return colors, specular, texels, normals, alpha[:, :, :, 3]

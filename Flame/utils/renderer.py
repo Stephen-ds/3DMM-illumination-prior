@@ -10,7 +10,24 @@ import torch.nn.functional as F
 from pytorch3d.structures import Meshes
 from pytorch3d.io import load_obj
 from pytorch3d.renderer.mesh import rasterize_meshes
+from pytorch3d.renderer.cameras import try_get_projection_transform
 from Flame.utils import util
+from Flame.utils.crop_lms import get_face_inds
+
+from pytorch3d.renderer import (
+    look_at_view_transform,
+    FoVPerspectiveCameras,
+    RasterizationSettings,
+    MeshRenderer,
+    MeshRasterizer,
+    TexturesVertex,
+    FoVPerspectiveCameras,
+    RasterizationSettings,
+    MeshRenderer,
+    MeshRasterizer,
+    TexturesVertex,
+    Materials,
+)
 
 from RENI.src.utils.utils import sRGB_old
 
@@ -53,7 +70,7 @@ class Pytorch3dRasterizer(nn.Module):
             Fragments: Rasterization outputs as a named tuple.
         """
         fixed_vetices = vertices.clone()
-        fixed_vetices[..., :2] = -fixed_vetices[..., :2]
+        #fixed_vetices[..., :2] = -fixed_vetices[..., :2]
         meshes_screen = Meshes(verts=fixed_vetices.float(), faces=faces.long())
         raster_settings = self.raster_settings
 
@@ -84,6 +101,150 @@ class Pytorch3dRasterizer(nn.Module):
         # import ipdb; ipdb.set_trace()
         return pixel_vals
 
+class PerspectiveRasterizer(nn.Module):
+    """
+    This class implements methods for rasterizing a batch of heterogenous
+    Meshes.
+
+    Notice:
+        x,y,z are in image space
+    """
+
+    def __init__(self, focal, image_size=224):
+        """
+        Args:
+            raster_settings: the parameters for rasterization. This should be a
+                named tuple.
+        All these initial settings can be overridden by passing keyword
+        arguments to the forward function.
+        """
+        super().__init__()
+        raster_settings = {
+            'image_size': image_size,
+            'blur_radius': 0.0,
+            'faces_per_pixel': 1,
+            'bin_size': None,
+            'max_faces_per_bin': None,
+            'perspective_correct': False,
+        }
+        raster_settings = util.dict2obj(raster_settings)
+        self.raster_settings = raster_settings
+        R, T = look_at_view_transform(10, 0, 0)  # camera's position
+        cameras = FoVPerspectiveCameras(R=R, T=T, znear=0.01,
+                                        zfar=50,
+                                        fov=2*np.arctan(image_size//2/focal)*180./np.pi)
+        self.cameras = cameras
+
+    def to(self, device):
+        # Manually move to device cameras as it is not a subclass of nn.Module
+        if self.cameras is not None:
+            self.cameras = self.cameras.to(device)
+        return self
+
+    def transform(self, meshes_world, **kwargs) -> torch.Tensor:
+        """
+        Args:
+            meshes_world: a Meshes object representing a batch of meshes with
+                vertex coordinates in world space.
+
+        Returns:
+            meshes_proj: a Meshes object with the vertex positions projected
+            in NDC space
+
+        NOTE: keeping this as a separate function for readability but it could
+        be moved into forward.
+        """
+        self.cameras.to(meshes_world.device)
+
+        n_cameras = len(self.cameras)
+        if n_cameras != 1 and n_cameras != len(meshes_world):
+            msg = "Wrong number (%r) of cameras for %r meshes"
+            raise ValueError(msg % (n_cameras, len(meshes_world)))
+
+        verts_world = meshes_world.verts_padded()
+
+        # NOTE: Retaining view space z coordinate for now.
+        # TODO: Revisit whether or not to transform z coordinate to [-1, 1] or
+        # [0, 1] range.
+        eps = kwargs.get("eps", None)
+        verts_view = self.cameras.get_world_to_view_transform(**kwargs).transform_points(
+            verts_world, eps=eps
+        )
+        # Call transform_points instead of explicitly composing transforms to handle
+        # the case, where camera class does not have a projection matrix form.
+        verts_proj = self.cameras.transform_points(verts_world, eps=eps)
+        to_ndc_transform = self.cameras.get_ndc_camera_transform(**kwargs)
+        projection_transform = try_get_projection_transform(self.cameras, kwargs)
+        if projection_transform is not None:
+            projection_transform = projection_transform.compose(to_ndc_transform)
+            verts_ndc = projection_transform.transform_points(verts_view, eps=eps)
+        else:
+            # Call transform_points instead of explicitly composing transforms to handle
+            # the case, where camera class does not have a projection matrix form.
+            verts_proj = self.cameras.transform_points(verts_world, eps=eps)
+            verts_ndc = to_ndc_transform.transform_points(verts_proj, eps=eps)
+
+        verts_ndc[..., 2] = verts_view[..., 2]
+        meshes_ndc = meshes_world.update_padded(new_verts_padded=verts_ndc)
+        return meshes_ndc
+
+
+    def forward(self, vertices, faces, attributes=None):
+        """
+        Args:
+            meshes_world: a Meshes object representing a batch of meshes with
+                          coordinates in world space.
+        Returns:
+            Fragments: Rasterization outputs as a named tuple.
+        """
+        fixed_vetices = vertices
+        #fixed_vetices[..., :2] = -fixed_vetices[..., :2]
+        meshes_screen = Meshes(verts=fixed_vetices.float(), faces=faces.long())
+        raster_settings = self.raster_settings
+
+        meshes_proj = self.transform(meshes_screen)
+
+        # By default, turn on clip_barycentric_coords if blur_radius > 0.
+        # When blur_radius > 0, a face can be matched to a pixel that is outside the
+        # face, resulting in negative barycentric coordinates.
+        clip_barycentric_coords = raster_settings.blur_radius > 0.0
+
+        if raster_settings.perspective_correct is not None:
+            perspective_correct = raster_settings.perspective_correct
+        else:
+            perspective_correct = self.cameras.is_perspective()
+
+        znear = self.cameras.get_znear()
+        if isinstance(znear, torch.Tensor):
+            znear = znear.min().item()
+        z_clip = None if not perspective_correct or znear is None else znear / 2
+
+        pix_to_face, zbuf, bary_coords, dists = rasterize_meshes(
+            meshes_proj,
+            image_size=raster_settings.image_size,
+            blur_radius=raster_settings.blur_radius,
+            faces_per_pixel=raster_settings.faces_per_pixel,
+            bin_size=raster_settings.bin_size,
+            max_faces_per_bin=raster_settings.max_faces_per_bin,
+            perspective_correct=raster_settings.perspective_correct,
+        )
+
+        vismask = (pix_to_face > -1).float()
+        D = attributes.shape[-1]
+        attributes = attributes.clone()
+        attributes = attributes.view(attributes.shape[0] * attributes.shape[1], 3, attributes.shape[-1])
+        N, H, W, K, _ = bary_coords.shape
+        mask = pix_to_face == -1  # []
+        pix_to_face = pix_to_face.clone()
+        pix_to_face[mask] = 0
+        idx = pix_to_face.view(N * H * W * K, 1, 1).expand(N * H * W * K, 3, D)
+        pixel_face_vals = attributes.gather(0, idx).view(N, H, W, K, 3, D)
+        pixel_vals = (bary_coords[..., None] * pixel_face_vals).sum(dim=-2)
+        pixel_vals[mask] = 0  # Replace masked values in output.
+        pixel_vals = pixel_vals[:, :, :, 0].permute(0, 3, 1, 2)
+        pixel_vals = torch.cat([pixel_vals, vismask[:, :, :, 0][:, None, :, :]], dim=1)
+        # import ipdb; ipdb.set_trace()
+        return pixel_vals
 
 class Renderer(nn.Module):
     def __init__(self, image_size, obj_filename, uv_size=256):
@@ -91,12 +252,18 @@ class Renderer(nn.Module):
         self.image_size = image_size
         self.uv_size = uv_size
 
+        vert_inds = get_face_inds()
         verts, faces, aux = load_obj(obj_filename)
+        #verts = verts[vert_inds]
+        aux = aux
         uvcoords = aux.verts_uvs[None, ...]  # (N, V, 2)
-        uvfaces = faces.textures_idx[None, ...]  # (N, F, 3)
+        uvfaces = faces.textures_idx[None, ...]  # (N, F, 3)   
         faces = faces.verts_idx[None, ...]
-        self.rasterizer = Pytorch3dRasterizer(image_size)
-        self.uv_rasterizer = Pytorch3dRasterizer(uv_size)
+        isin_f = torch.isin(faces, vert_inds).sum(2)
+        faces = faces[isin_f == 3].view(1, -1, 3)
+        uvfaces = uvfaces[isin_f == 3].view(1, -1, 3)
+        self.rasterizer = PerspectiveRasterizer(image_size * (1015/224), image_size)
+        self.uv_rasterizer = PerspectiveRasterizer(uv_size * (1015/224), uv_size)
 
         # faces
         self.register_buffer('faces', faces)
@@ -117,18 +284,18 @@ class Renderer(nn.Module):
         self.register_buffer('face_colors', face_colors)
 
         ## lighting
-        pi = np.pi
-        constant_factor = torch.tensor(
-            [1 / np.sqrt(4 * pi), ((2 * pi) / 3) * (np.sqrt(3 / (4 * pi))), ((2 * pi) / 3) * (np.sqrt(3 / (4 * pi))), \
-             ((2 * pi) / 3) * (np.sqrt(3 / (4 * pi))), (pi / 4) * (3) * (np.sqrt(5 / (12 * pi))),
-             (pi / 4) * (3) * (np.sqrt(5 / (12 * pi))), \
-             (pi / 4) * (3) * (np.sqrt(5 / (12 * pi))), (pi / 4) * (3 / 2) * (np.sqrt(5 / (12 * pi))),
-             (pi / 4) * (1 / 2) * (np.sqrt(5 / (4 * pi)))])
-        self.register_buffer('constant_factor', constant_factor)
+        # pi = np.pi
+        # constant_factor = torch.tensor(
+        #     [1 / np.sqrt(4 * pi), ((2 * pi) / 3) * (np.sqrt(3 / (4 * pi))), ((2 * pi) / 3) * (np.sqrt(3 / (4 * pi))), \
+        #      ((2 * pi) / 3) * (np.sqrt(3 / (4 * pi))), (pi / 4) * (3) * (np.sqrt(5 / (12 * pi))),
+        #      (pi / 4) * (3) * (np.sqrt(5 / (12 * pi))), \
+        #      (pi / 4) * (3) * (np.sqrt(5 / (12 * pi))), (pi / 4) * (3 / 2) * (np.sqrt(5 / (12 * pi))),
+        #      (pi / 4) * (1 / 2) * (np.sqrt(5 / (4 * pi)))])
+        # self.register_buffer('constant_factor', constant_factor)
 
 
 
-    def forward(self, vertices, transformed_vertices, albedos, envmap=None):
+    def forward(self, vertices, transformed_vertices, albedos, envmap=None, envmap_intensity=None):
         '''
         lihgts:
             spherical homarnic: [N, 9(shcoeff), 3(rgb)]
@@ -136,8 +303,10 @@ class Renderer(nn.Module):
         transformed_vertices: [N, V, 3], range(-1, 1), projected vertices, for rendering
         '''
         batch_size = vertices.shape[0]
+        #envmap_intensity = torch.clamp(envmap_intensity, 1e-7, 1.0)
+        envmap_intensity = 1
         ## rasterizer near 0 far 100. move mesh so minz larger than 0
-        transformed_vertices[:, :, 2] = transformed_vertices[:, :, 2] + 10
+        #transformed_vertices[:, :, 2] = transformed_vertices[:, :, 2] + 10
 
         # Attributes
         face_vertices = util.face_vertices(vertices, self.faces.expand(batch_size, -1, -1))
@@ -147,12 +316,12 @@ class Renderer(nn.Module):
         transformed_face_normals = util.face_vertices(transformed_normals, self.faces.expand(batch_size, -1, -1))
 
         # render
-        attributes = torch.cat([self.face_uvcoords.expand(batch_size, -1, -1, -1), transformed_face_normals.detach(),
-                                face_vertices.detach(), face_normals.detach()], -1)
+        attributes = torch.cat([self.face_uvcoords.expand(batch_size, -1, -1, -1), transformed_face_normals,
+                                face_vertices.detach(), face_normals], -1)
         # import ipdb;ipdb.set_trace()
         rendering = self.rasterizer(transformed_vertices, self.faces.expand(batch_size, -1, -1), attributes)
 
-        alpha_images = rendering[:, -1, :, :][:, None, :, :].detach()
+        alpha_images = rendering[:, -1, :, :][:, None, :, :]
 
         albedos = albedos
         # albedo
@@ -165,23 +334,34 @@ class Renderer(nn.Module):
         
 
         # remove inner mouth region
-        transformed_normal_map = torch.where(albedo_images.sum(1) > 0.05, rendering[:, 3:6, :, :], 
-                                    torch.zeros(1, dtype=torch.float32, device=rendering.device))
-        pos_mask = (transformed_normal_map[:, 2:, :, :] < -0.05).float()
+        transformed_normal_map = torch.where(albedo_images.sum(1) > 0.0, rendering[:, 3:6, :, :], 
+                                    -torch.ones(1, dtype=torch.float32, device=rendering.device))
+        # pos_mask = (transformed_normal_map[:, 2:, :, :] < -0.05).float()
+        #transformed_normal_map = rendering[:, 3:6, :, :]
+        pos_mask = (transformed_normal_map[:, 2:, :, :] > -0.05).float()
 
         # shading
         if envmap is not None:
             normal_images = rendering[:, 9:12, :, :]
-            shading_images = self.add_RENI(normal_images.permute(0, 2, 3, 1), envmap)
+            shading_images = self.add_RENI(normal_images.permute(0, 2, 3, 1), envmap, envmap_intensity)
+            # print('albedo')
+            # print(torch.max(albedo_images))
+            # print(torch.mean(albedo_images))
+            # print(torch.min(albedo_images))
+            # print('shade')
+            # print(torch.max(shading_images))
+            # print(torch.mean(shading_images))
+            # print(torch.min(shading_images))
             images = albedo_images * shading_images
-            images = sRGB_old(images)
-            shading_images = sRGB_old(shading_images)
+            images = sRGB_old(images, permute = False)
+            shading_images = sRGB_old(shading_images, permute = False)
+
         else:
             images = albedo_images
-            shading_images = images.detach() * 0.
+            shading_images = images.detach()
 
         outputs = {
-            'images': images * alpha_images,
+            'images': images,
             'albedo_images': albedo_images,
             'alpha_images': alpha_images,
             'pos_mask': pos_mask,
@@ -192,13 +372,13 @@ class Renderer(nn.Module):
 
         return outputs
     
-    def add_RENI(self, normal_images, envmap):
+    def add_RENI(self, normal_images, envmap, envmap_intensity):
         light_directions = envmap.directions.to(
             device=normal_images.device
         )  # (B, J, 3) unit vector associated with the direction of each pixel in a panoramic image where J = H*W
         light_colors = envmap.environment_map.to(
             device=normal_images.device
-        ) # (B, J, 3) RGB color of the environment map.
+        ) * envmap_intensity # (B, J, 3) RGB color of the environment map.
 
         normal_images = F.normalize(normal_images, p=2, dim=-1, eps=1e-6)
         #create copies of light directions for batch matrix multiplication
@@ -257,17 +437,18 @@ class Renderer(nn.Module):
         shading = normals_dot_lights[:, :, :, None] * light_intensities[:, :, None, :]
         return shading
 
-    def render_shape(self, vertices, transformed_vertices, images=None, lights=None):
+    def render_shape(self, vertices, transformed_vertices, images=None, envmap=None, envmap_intensity=None):
         batch_size = vertices.shape[0]
-        if lights is None:
-            light_positions = torch.tensor([[-0.1, -0.1, 0.2],
-                                            [0, 0, 1]]
-                                           )[None, :, :].expand(batch_size, -1, -1).float()
-            light_intensities = torch.ones_like(light_positions).float()
-            lights = torch.cat((light_positions, light_intensities), 2).to(vertices.device)
+        # if lights is None:
+        #     light_positions = torch.tensor([[-0.1, -0.1, 0.2],
+        #                                     [0, 0, 1]]
+        #                                    )[None, :, :].expand(batch_size, -1, -1).float()
+        #     light_intensities = torch.ones_like(light_positions).float()
+        #     lights = torch.cat((light_positions, light_intensities), 2).to(vertices.device)
 
         ## rasterizer near 0 far 100. move mesh so minz larger than 0
-        transformed_vertices[:, :, 2] = transformed_vertices[:, :, 2] + 10
+        #transformed_vertices[:, :, 2] = transformed_vertices[:, :, 2] + 10
+        envmap_intensity = torch.clamp(envmap_intensity, 0.05, 1.0)
 
         # Attributes
         face_vertices = util.face_vertices(vertices, self.faces.expand(batch_size, -1, -1))
@@ -284,16 +465,13 @@ class Renderer(nn.Module):
         albedo_images = rendering[:, :3, :, :]
         # shading
         normal_images = rendering[:, 9:12, :, :].detach()
-        if lights.shape[1] == 9:
-            shading_images = self.add_SHlight(normal_images, lights)
+        if envmap is not None:
+            normal_images = rendering[:, 9:12, :, :]
+            shading_images = self.add_RENI(normal_images.permute(0, 2, 3, 1), envmap, envmap_intensity)
+            images = albedo_images * shading_images
+            images = sRGB_old(images, permute = False)
         else:
-            print('directional')
-            shading = self.add_directionlight(normal_images.permute(0, 2, 3, 1).reshape([batch_size, -1, 3]), lights)
-
-            shading_images = shading.reshape(
-                [batch_size, lights.shape[1], albedo_images.shape[2], albedo_images.shape[3], 3]).permute(0, 1, 4, 2, 3)
-            shading_images = shading_images.mean(1)
-        images = albedo_images * shading_images
+            images = albedo_images
 
         return images
 

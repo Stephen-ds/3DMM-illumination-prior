@@ -11,6 +11,8 @@ import pickle
 import torch.nn.functional as F
 
 from Flame.models.lbs import lbs, batch_rodrigues, vertices2landmarks
+from Flame.utils.util import batch_persp_proj
+from core.BaseModel import BaseReconModel
 
 
 def to_tensor(array, dtype=torch.float32):
@@ -173,7 +175,7 @@ class FLAME(nn.Module):
                                        self.full_lmk_bary_coords.repeat(vertices.shape[0], 1, 1))
         return landmarks3d
 
-    def forward(self, shape_params=None, expression_params=None, pose_params=None, eye_pose_params=None):
+    def forward(self, img_tensor, project=False, rot_tensor=None, trans_tensor=None, shape_params=None, expression_params=None, pose_params=None, eye_pose_params=None):
         """
             Input:
                 shape_params: N X number of shape parameters
@@ -195,6 +197,10 @@ class FLAME(nn.Module):
                           self.shapedirs, self.posedirs,
                           self.J_regressor, self.parents,
                           self.lbs_weights, dtype=self.dtype)
+        # if project:
+        #     rotation = BaseReconModel.compute_rotation_matrix(batch_size, angles=rot_tensor)
+
+        #     vertices = batch_persp_proj(vertices, rotation, 1015, trans_tensor, 256)
 
         lmk_faces_idx = self.lmk_faces_idx.unsqueeze(dim=0).expand(batch_size, -1)
         lmk_bary_coords = self.lmk_bary_coords.unsqueeze(dim=0).expand(batch_size, -1, -1)
@@ -213,6 +219,9 @@ class FLAME(nn.Module):
         landmarks3d = vertices2landmarks(vertices, self.faces_tensor,
                                          self.full_lmk_faces_idx.repeat(bz, 1),
                                          self.full_lmk_bary_coords.repeat(bz, 1, 1))
+        
+        # if project:
+        #     landmarks2d = BaseReconModel.project_vs(batch_size, landmarks2d)
 
         return vertices, landmarks2d, landmarks3d
 
@@ -269,7 +278,7 @@ class FLAMETex(nn.Module):
     def forward(self, texcode):
         texture = self.texture_mean + (self.texture_basis*texcode[:,None,:]).sum(-1)
         texture = texture.reshape(texcode.shape[0], 512, 512, 3).permute(0,3,1,2)
-        texture = F.interpolate(texture, [256, 256])
+        texture = F.interpolate(texture, [512,512])
         texture = texture[:,[2,1,0], :,:]
         return texture
 

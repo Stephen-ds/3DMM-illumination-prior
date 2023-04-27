@@ -90,16 +90,39 @@ class BaseReconModel(nn.Module):
         return v_norm
 
     def project_vs(self, vs):
-        batchsize = vs.shape[0]
+        # batchsize = vs.shape[0]
 
-        vs = torch.matmul(vs, self.reverse_z.repeat(
-            (batchsize, 1, 1))) + self.camera_pos
+        # vs = torch.matmul(vs, self.reverse_z.repeat(
+        #     (batchsize, 1, 1))) + self.camera_pos
+        # aug_projection = torch.matmul(
+        #     vs, self.p_mat.repeat((batchsize, 1, 1)).permute((0, 2, 1)))
+
+        # face_projection = aug_projection[:, :, :2] / \
+        #     torch.reshape(aug_projection[:, :, 2], [batchsize, -1, 1])
+        # return face_projection
+        batchsize = vs.shape[0]
+        camera_pos = torch.tensor(
+            [0.0, 0.0, 10.0], device=vs.device).reshape(1, 1, 3)
+        
+        reverse_z = np.reshape(
+            np.array([1.0, 0, 0, 0, 1, 0, 0, 0, -1.0], dtype=np.float32), [1, 3, 3])
+        reverse_z = torch.tensor(reverse_z, device=vs.device)
+
+        half_image_width = 224 // 2
+        p_matrix = np.array([224 * (1015/224), 0.0, half_image_width,
+                             0.0, 224 * (1015/224), half_image_width,
+                             0.0, 0.0, 1.0], dtype=np.float32).reshape(1, 3, 3)
+        p_mat = torch.tensor(p_matrix, device=vs.device)
+
+        vs = torch.matmul(vs, reverse_z.repeat(
+            (batchsize, 1, 1))) + camera_pos
         aug_projection = torch.matmul(
-            vs, self.p_mat.repeat((batchsize, 1, 1)).permute((0, 2, 1)))
+            vs, p_mat.repeat((batchsize, 1, 1)).permute((0, 2, 1)))
 
         face_projection = aug_projection[:, :, :2] / \
             torch.reshape(aug_projection[:, :, 2], [batchsize, -1, 1])
         return face_projection
+    
 
     def compute_rotation_matrix(self, angles):
         n_b = angles.size(0)

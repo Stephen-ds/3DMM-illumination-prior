@@ -61,3 +61,11 @@ def gamma_loss(gamma):
     gamma_loss = torch.mean(torch.square(gamma - gamma_mean))
 
     return gamma_loss
+
+def perceptual_loss(pred_id, gt_id):
+    pred_id = torch.nn.functional.normalize(pred_id, p=2, dim=1)
+    gt_id = torch.nn.functional.normalize(gt_id, p=2, dim=1)
+
+    sim = torch.sum(pred_id*gt_id, 1)
+
+    return torch.sum(max(0.0, 1 - sim))/pred_id.shape[0]

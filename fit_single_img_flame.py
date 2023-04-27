@@ -1,4 +1,4 @@
-from facenet_pytorch import MTCNN
+from facenet_pytorch import MTCNN, InceptionResnetV1
 
 from core.RENISetup import RENI
 from RENI.src.utils.utils import sRGB_old
@@ -23,9 +23,14 @@ import os
 import torch
 import core.utils as utils
 from tqdm import tqdm
-import core.losses as losses
+import core.losses as lossfuncs
 import matplotlib.pyplot as plt
 from PIL import Image
+from core.BFM09Model import BFM09ReconModel
+from core.BaseModel import BaseReconModel
+from core.preprocess_img import get_skinmask
+from Flame.utils.crop_lms import get_face_inds
+
 
 from torch.utils.tensorboard import SummaryWriter
 import wandb
@@ -43,6 +48,12 @@ def fit(args):
     # init face detection and lms detection models
     print('loading models')
     mtcnn = MTCNN(device=args.device, select_largest=False)
+    mtcnn_features = MTCNN(
+        image_size=160, margin=0, min_face_size=20,
+        thresholds=[0.6, 0.7, 0.7], factor=0.709, post_process=True,
+        device=args.device
+    )
+    resnet = InceptionResnetV1(pretrained='vggface2').eval().to(args.device)
     fa = face_alignment.FaceAlignment(
         face_alignment.LandmarksType._3D, flip_input=False)
     recon_model = get_recon_model(model=args.recon_model,
@@ -56,16 +67,26 @@ def fit(args):
     reni = RENI(32, 64, device=args.device)
     reni_model = reni.model
 
-    render = Renderer(args.tar_size, obj_filename=cfg.mesh_file).to(args.device)
+    render = Renderer(args.tar_size, obj_filename=cfg.mesh_file, uv_size=512).to(args.device)
+
+    focal = args.tar_size * (1015/224)
 
     print('loading images')
     img_arr = cv2.imread(args.img_path)[:, :, ::-1]
     orig_h, orig_w = img_arr.shape[:2]
 
-    uv_skin_mask = cv2.resize(cv2.imread('Flame/data/uv_face_mask.png'), (256, 256)).astype(np.float32) / 255.
+    uv_skin_mask = cv2.resize(cv2.imread('Flame/data/uv_face_mask.png'), (512, 512)).astype(np.float32) / 255.
     uv_skin_mask = torch.from_numpy(uv_skin_mask[None, :, :, :]).permute(0,3,1,2).to(args.device)
+    uv_skin_mask = uv_skin_mask[:,0,:,:]
 
     print('image is loaded. width: %d, height: %d' % (orig_w, orig_h))
+
+    ten = img_arr[None, ...].copy()
+    ten = torch.from_numpy(ten).to(args.device)
+    gt_embed_face,_ = mtcnn(ten, return_prob=True)
+    gt_embed_face = gt_embed_face[0].unsqueeze(0).permute(0,3,1,2)
+    gt_embeddings = resnet(gt_embed_face)
+    gt_embeddings = gt_embeddings.clone().detach().requires_grad_(True)
 
     # detect the face using MTCNN
     bboxes, probs = mtcnn.detect(img_arr)
@@ -77,7 +98,10 @@ def fit(args):
         print('A face is detected. l: %d, t: %d, r: %d, b: %d'
             % (bbox[0], bbox[1], bbox[2], bbox[3]))
 
+    
     resized_face_img = cv2.resize(face_img, (args.tar_size, args.tar_size))
+    skin_attention_mask = get_skinmask(resized_face_img)
+    skin_attention_mask = torch.from_numpy(skin_attention_mask).to(device=args.device)
 
     lms = fa.get_landmarks_from_image(resized_face_img)[0]
     lms = lms[:, :2][None, ...]
@@ -98,33 +122,43 @@ def fit(args):
     pose = nn.Parameter(torch.zeros(bz, cfg.pose_params).float().to(args.device))
     cam = torch.zeros(bz, cfg.camera_params); cam[:, 0] = 5.
     cam = nn.Parameter(cam.float().to(args.device))
-    lights = nn.Parameter(torch.zeros(bz, 9, 3).float().to(args.device))
+    rot_tensor = torch.zeros((bz, 3), dtype=torch.float32)
+    rot_tensor = nn.Parameter(rot_tensor.to(args.device))
+    trans_tensor = torch.zeros((bz, 3), dtype=torch.float32)
+    trans_tensor = nn.Parameter(trans_tensor.to(args.device))
+    envmap_intensity = nn.Parameter(torch.full((bz, 1), 0.8).float().to(args.device))
     nonrigid_optimizer = torch.optim.Adam(
-        [{'params': [shape, exp, pose, cam, tex, lights]},
-        {'params': reni_model.parameters(), 'lr': 1e-1}], lr=cfg.e_lr, weight_decay=cfg.e_wd)
+        [{'params': [shape, exp, rot_tensor, trans_tensor, tex, envmap_intensity]},
+        {'params': reni_model.parameters(), 'lr': 1e-1}], lr=args.nrf_lr)
         
     rigid_optimizer = torch.optim.Adam(
-        [pose, cam],
-        lr=cfg.e_lr,
-        weight_decay=cfg.e_wd
+        [rot_tensor, trans_tensor],
+        lr=args.rf_lr
     )
+
+    face_inds = get_face_inds()
 
     # rigid fitting of pose and camera with 51 static face landmarks,
     # this is due to the non-differentiable attribute of contour landmarks trajectory
+    lm_weights = utils.get_lm_weights(args.device)
     for k in range(200):
         losses = {}
-        vertices, landmarks2d, landmarks3d = flame(shape_params=shape, expression_params=exp, pose_params=pose)
-        trans_vertices = util.batch_orth_proj(vertices, cam)
-        trans_vertices[..., 1:] = - trans_vertices[..., 1:]
-        landmarks2d = util.batch_orth_proj(landmarks2d, cam)
-        landmarks2d[..., 1:] = - landmarks2d[..., 1:]
-        landmarks3d = util.batch_orth_proj(landmarks3d, cam)
-        landmarks3d[..., 1:] = - landmarks3d[..., 1:]
+        vertices, landmarks2d, landmarks3d = flame(img_tensor, project=True, rot_tensor=rot_tensor, trans_tensor=trans_tensor, shape_params=shape, expression_params=exp, pose_params=pose)#
+        #vertices = vertices[:,face_inds,:]
+        vertices = vertices * 10
+        landmarks2d = landmarks2d * 10
 
-        landmarks2d = util.scale_landmarks(img_tensor, landmarks2d)
-        landmarks3d = util.scale_landmarks(img_tensor, landmarks3d)
+        trans_vertices = util.rigid_transform(vertices, rot_tensor, trans_tensor)
 
-        losses['landmark'] = util.l2_distance(landmarks2d[:, 17:, :2], lms[:, 17:, :2]) * cfg.w_lmks
+        landmarks2d = util.rigid_transform(landmarks2d, rot_tensor, trans_tensor)
+        #landmarks2d = util.batch_orth_proj(landmarks2d, cam)
+        landmarks2d = util.batch_persp_proj(landmarks2d, args.tar_size)
+
+        #landmarks2d = util.scale_landmarks(img_tensor, landmarks2d)
+
+        #[:, 17:, :2]
+        losses['landmark'] = lossfuncs.lm_loss(landmarks2d[:,17:,:2], lms[:, 17:, :2], lm_weights[17:],
+                                     img_size=args.tar_size) * args.lm_loss_w
 
         all_loss = 0.
         for key in losses.keys():
@@ -148,13 +182,24 @@ def fit(args):
                 util.tensor_vis_landmarks(img_tensor[visind], lms[visind], isScale=False))
             grids['landmarks2d'] = torchvision.utils.make_grid(
                 util.tensor_vis_landmarks(img_tensor[visind], landmarks2d[visind], isScale=False))
-            grids['landmarks3d'] = torchvision.utils.make_grid(
-                util.tensor_vis_landmarks(img_tensor[visind], landmarks3d[visind], isScale=False))
 
             grid = torch.cat(list(grids.values()), 1)
-            grid_image = (grid.numpy().transpose(1, 2, 0).copy() * 255)[:, :, [2, 1, 0]]
+            #grid_image = (grid.numpy().transpose(1, 2, 0).copy() * 255)[:, :, [2, 1, 0]]
+            grid_image = grid.numpy().transpose(1, 2, 0).copy() * 255
             grid_image = np.minimum(np.maximum(grid_image, 0), 255).astype(np.uint8)
             cv2.imwrite('{}/{}.jpg'.format(savefolder, k), grid_image)
+
+            lms_out = lms.cpu().detach().numpy()
+            landmarks2d_out = landmarks2d.cpu().detach().numpy()
+
+            fig, ax = plt.subplots(figsize=(4, 4))
+            ax.axis('off')
+            ax.imshow((img_tensor*255).permute(0,2,3,1).cpu().detach().numpy().squeeze().astype(np.uint8))
+            ax.scatter(lms_out[:,:, 0], lms_out[:,:, 1], s=8)
+            ax.scatter(landmarks2d_out[:,:, 0], landmarks2d_out[:,:, 1], s=8, color='r')
+            #wandb.log({'landmarks_proj': fig})
+            writer.add_figure('landmarks', fig, global_step=k)
+            plt.close(fig)
 
     orig_face_log = (img_tensor*255).cpu().numpy().squeeze().astype(np.uint8)
     print('done rigid fitting. lm_loss: %f' %
@@ -169,21 +214,16 @@ def fit(args):
     # non-rigid fitting of all the parameters with 68 face landmarks, photometric loss and regularization terms.
     for k in range(200, 1000):
         losses = {}
-        vertices, landmarks2d, landmarks3d = flame(shape_params=shape, expression_params=exp, pose_params=pose)
-        trans_vertices = util.batch_orth_proj(vertices, cam)
-        trans_vertices[..., 1:] = - trans_vertices[..., 1:]
-        landmarks2d = util.batch_orth_proj(landmarks2d, cam)
-        landmarks2d[..., 1:] = - landmarks2d[..., 1:]
-        landmarks3d = util.batch_orth_proj(landmarks3d, cam)
-        landmarks3d[..., 1:] = - landmarks3d[..., 1:]
+        vertices, landmarks2d, landmarks3d = flame(img_tensor, project=True, rot_tensor=rot_tensor, trans_tensor=trans_tensor, shape_params=shape, expression_params=exp, pose_params=pose)#
+        #vertices = vertices[:,face_inds,:]
+        vertices = vertices * 10
+        landmarks2d = landmarks2d * 10
 
-        landmarks2d = util.scale_landmarks(img_tensor, landmarks2d)
-        landmarks3d = util.scale_landmarks(img_tensor, landmarks3d)
+        trans_vertices = util.rigid_transform(vertices, rot_tensor, trans_tensor)
 
-        losses['landmark'] = util.l2_distance(landmarks2d[:, :, :2], lms[:, :, :2]) * cfg.w_lmks
-        losses['shape_reg'] = (torch.sum(shape ** 2) / 2) * cfg.w_shape_reg  # *1e-4
-        losses['expression_reg'] = (torch.sum(exp ** 2) / 2) * cfg.w_expr_reg  # *1e-4
-        losses['pose_reg'] = (torch.sum(pose ** 2) / 2) * cfg.w_pose_reg
+        landmarks2d = util.rigid_transform(landmarks2d, rot_tensor, trans_tensor)
+        #landmarks2d = util.batch_orth_proj(landmarks2d, cam)
+        landmarks2d = util.batch_persp_proj(landmarks2d, args.tar_size)
 
         ### RENI ###
         D = reni.directions.repeat(bz, 1, 1).type_as(img_tensor)
@@ -199,12 +239,38 @@ def fit(args):
         )
         ######
 
+
+
         ## render
-        albedos = flametex(tex) * uv_skin_mask
-        ops = render(vertices, trans_vertices, albedos, envmap)
+        #albedos = flametex(tex) * uv_skin_mask
+        albedos = torch.clamp(flametex(tex), 1e-6, 1)
+        ops = render(vertices, trans_vertices, albedos, envmap, envmap_intensity)
         predicted_images = ops['images']
         render_mask = ops['pos_mask']
-        losses['photometric_texture'] = (render_mask * (ops['images'] - img_tensor).abs()).mean() * cfg.w_pho
+        losses['photometric_texture'] = (render_mask * skin_attention_mask * (predicted_images - img_tensor).abs()).mean() * args.rgb_loss_w
+
+
+        embed_face,_ = mtcnn(predicted_images.permute(0,2,3,1)*255, return_prob=True)
+        ##TODO add failsafe default if no face found so that loss will return something appropriately high
+        embed_face = embed_face[0].unsqueeze(0).permute(0,3,1,2)
+        embeddings = resnet(embed_face)
+        ## loss
+        losses['landmark'] = lossfuncs.lm_loss(landmarks2d[:,:,:2], lms, lm_weights,
+                                img_size=args.tar_size) * args.lm_loss_w
+        losses['shape_reg'] = lossfuncs.get_l2(shape) * args.id_reg_w  # *1e-4
+        losses['expression_reg'] = lossfuncs.get_l2(exp) * args.exp_reg_w  # *1e-4
+        losses['tex_reg'] = lossfuncs.get_l2(tex) * args.tex_reg_w
+        #losses['pose_reg'] = (torch.sum(pose ** 2) / 2) * cfg.w_pose_reg
+        losses['reni reg'] = lossfuncs.get_l2(Z) * args.reni_reg_w
+        losses['perceptual'] = lossfuncs.perceptual_loss(embeddings, gt_embeddings) * 1
+
+
+
+
+        albedoss = albedos.permute(0,2,3,1).flatten(1,2)
+        maskk = uv_skin_mask.flatten(1,2)
+        losses['reflectance'] = lossfuncs.reflectance_loss(
+            albedoss, maskk) * args.tex_w
 
         all_loss = 0.
         for key in losses.keys():
@@ -230,40 +296,59 @@ def fit(args):
                 util.tensor_vis_landmarks(img_tensor[visind], lms[visind], isScale=False))
             grids['landmarks2d'] = torchvision.utils.make_grid(
                 util.tensor_vis_landmarks(img_tensor[visind], landmarks2d[visind], isScale=False))
-            grids['landmarks3d'] = torchvision.utils.make_grid(
-                util.tensor_vis_landmarks(img_tensor[visind], landmarks3d[visind], isScale=False))
             grids['albedoimage'] = torchvision.utils.make_grid(
-                (ops['albedo_images'])[visind].detach().cpu())
+                (torch.clamp(ops['albedo_images'], 0, 1))[visind].detach().cpu())
             grids['render'] = torchvision.utils.make_grid(predicted_images[visind].detach().float().cpu())
-            shape_images = render.render_shape(vertices, trans_vertices, img_tensor)
+            shape_images = render.render_shape(vertices, trans_vertices, img_tensor, envmap, envmap_intensity)
             grids['shape'] = torchvision.utils.make_grid(
-                F.interpolate(shape_images[visind], [224, 224])).detach().float().cpu()
+                F.interpolate(shape_images[visind], [args.tar_size, args.tar_size])).detach().float().cpu()
 
 
             # grids['tex'] = torchvision.utils.make_grid(F.interpolate(albedos[visind], [224, 224])).detach().cpu()
             grid = torch.cat(list(grids.values()), 1)
-            grid_image = (grid.numpy().transpose(1, 2, 0).copy() * 255)[:, :, [2, 1, 0]]
+            grid_image = grid.numpy().transpose(1, 2, 0).copy() * 255
             grid_image = np.minimum(np.maximum(grid_image, 0), 255).astype(np.uint8)
 
-            cv2.imwrite('{}/{}.jpg'.format(savefolder, k), grid_image)
+            writer.add_image('lm_grid', grid_image, global_step=k, dataformats='HWC')
+            
+
+            # RENI environment map
+            envmap_im = reni_output.view(-1, reni.H, reni.W, 3)
+            envmap_im = sRGB_old(envmap_im).cpu().detach()
+            writer.add_image('envmap', envmap_im.squeeze(), global_step=k, dataformats='HWC')
+
+
+            # Predicted face albedo (diffuse)
+
+            rendered_img_albedo = albedos.squeeze()*255
+            render_out_albedo = rendered_img_albedo.cpu().detach().numpy().squeeze().astype(np.uint8)
+            writer.add_image('albedo', render_out_albedo, global_step=k)
+
+            ## Predicted specular contribution
+            # rendered_img_specular = pred_dict['specular_img']
+            # render_out_specular = rendered_img_specular.detach().permute(3,1,2,0)*255
+            # render_out_specular = render_out_specular.cpu().numpy().squeeze().astype(np.uint8)
+            # writer.add_image('specular', render_out_specular, global_step=i)
+
+        #######
+
 
     single_params = {
         'shape': shape.detach().cpu().numpy(),
         'exp': exp.detach().cpu().numpy(),
-        'pose': pose.detach().cpu().numpy(),
+        #'pose': pose.detach().cpu().numpy(),
         'cam': cam.detach().cpu().numpy(),
         'verts': trans_vertices.detach().cpu().numpy(),
         'albedos':albedos.detach().cpu().numpy(),
         'tex': tex.detach().cpu().numpy(),
-        'lit': lights.detach().cpu().numpy()
     }
 
     with torch.no_grad():
         ### Make predictions ###
-        coeffs = recon_model.get_packed_tensors()
-        pred_dict = recon_model(coeffs, envmap=envmap, render=True)
-        rendered_img = pred_dict['rendered_img']
-        mask = pred_dict['mask']
+        #albedos = flametex(tex) * uv_skin_mask
+        ops = render(vertices, trans_vertices, albedos, envmap, envmap_intensity)
+        rendered_img = (ops['images']).permute(0,2,3,1)
+        mask = (ops['pos_mask']).permute(0,2,3,1)
         ######
 
         ### Reconstruct full image with predicted face overlayed ###
@@ -292,18 +377,18 @@ def fit(args):
             args.res_folder, basename + '_composed_img.jpg')
         cv2.imwrite(out_composed_img_path, composed_img[:, :, ::-1])
         # save the coefficients
-        out_coeff_path = os.path.join(
-            args.res_folder, basename + '_coeffs.npy')
-        np.save(out_coeff_path,
-                coeffs.detach().cpu().numpy().squeeze())
+        # out_coeff_path = os.path.join(
+        #     args.res_folder, basename + '_coeffs.npy')
+        # np.save(out_coeff_path,
+        #         coeffs.detach().cpu().numpy().squeeze())
 
-        # save the mesh into obj format
-        out_obj_path = os.path.join(
-            args.res_folder, basename+'_mesh.obj')
-        vs = pred_dict['vs'].cpu().numpy().squeeze()
-        tri = pred_dict['tri'].cpu().numpy().squeeze()
-        color = pred_dict['color'].cpu().numpy().squeeze()
-        utils.save_obj(out_obj_path, vs, tri+1, color)
+        # # save the mesh into obj format
+        # out_obj_path = os.path.join(
+        #     args.res_folder, basename+'_mesh.obj')
+        # vs = pred_dict['vs'].cpu().numpy().squeeze()
+        # tri = pred_dict['tri'].cpu().numpy().squeeze()
+        # color = pred_dict['color'].cpu().numpy().squeeze()
+        # utils.save_obj(out_obj_path, vs, tri+1, color)
 
 
         print('composed image is saved at %s' % args.res_folder)

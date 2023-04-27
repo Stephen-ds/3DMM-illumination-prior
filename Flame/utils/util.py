@@ -83,8 +83,18 @@ def batch_orth_proj(X, camera):
     Xn = (camera[:, :, 0:1] * X_trans)
     return Xn
 
+def rigid_transform(vertices, R, t):
+    R = batch_rodrigues(R).to(vertices.device)
+    vs_r = torch.matmul(vertices, R)
+    vs_t = vs_r + t.view(-1, 1, 3)
 
-def batch_persp_proj(vertices, cam, f, t, orig_size=256, eps=1e-9):
+    return vs_t
+
+def normalize_vs(vertices):
+    v_max = torch.max(vertices)
+    v_min = torch.min(vertices)
+
+def batch_persp_proj(vs, img_size):
     '''
     Calculate projective transformation of vertices given a projection matrix
     Input parameters:
@@ -97,39 +107,66 @@ def batch_persp_proj(vertices, cam, f, t, orig_size=256, eps=1e-9):
     Returns: For each point [X,Y,Z] in world coordinates [u,v,z] where u,v are the coordinates of the projection in
     pixels and z is the depth
     '''
-    device = vertices.device
 
-    K = torch.tensor([f, 0., cam['c'][0], 0., f, cam['c'][1], 0., 0., 1.]).view(3, 3)[None, ...].repeat(
-        vertices.shape[0], 1).to(device)
-    R = batch_rodrigues(cam['r'][None, ...].repeat(vertices.shape[0], 1)).to(device)
-    dist_coeffs = cam['k'][None, ...].repeat(vertices.shape[0], 1).to(device)
+    # # half_image_width = 224 // 2
 
-    vertices = torch.matmul(vertices, R.transpose(2, 1)) + t
-    x, y, z = vertices[:, :, 0], vertices[:, :, 1], vertices[:, :, 2]
-    x_ = x / (z + eps)
-    y_ = y / (z + eps)
+    # # K = torch.tensor([f, 0., half_image_width, 0., f, half_image_width, 0., 0., 1.]).view(3, 3)[None, ...].repeat(
+    # #     vertices.shape[0], 1, 1).to(device)
+    # # #R = batch_rodrigues(R).to(device)
 
-    # Get distortion coefficients from vector
-    k1 = dist_coeffs[:, None, 0]
-    k2 = dist_coeffs[:, None, 1]
-    p1 = dist_coeffs[:, None, 2]
-    p2 = dist_coeffs[:, None, 3]
-    k3 = dist_coeffs[:, None, 4]
+    # # vertices = torch.matmul(vertices, K.transpose(1, 2))
 
-    # we use x_ for x' and x__ for x'' etc.
-    r = torch.sqrt(x_ ** 2 + y_ ** 2)
-    x__ = x_ * (1 + k1 * (r ** 2) + k2 * (r ** 4) + k3 * (r ** 6)) + 2 * p1 * x_ * y_ + p2 * (r ** 2 + 2 * x_ ** 2)
-    y__ = y_ * (1 + k1 * (r ** 2) + k2 * (r ** 4) + k3 * (r ** 6)) + p1 * (r ** 2 + 2 * y_ ** 2) + 2 * p2 * x_ * y_
-    vertices = torch.stack([x__, y__, torch.ones_like(z)], dim=-1)
-    vertices = torch.matmul(vertices, K.transpose(1, 2))
-    u, v = vertices[:, :, 0], vertices[:, :, 1]
-    v = orig_size - v
-    # map u,v from [0, img_size] to [-1, 1] to be compatible with the renderer
-    u = 2 * (u - orig_size / 2.) / orig_size
-    v = 2 * (v - orig_size / 2.) / orig_size
-    vertices = torch.stack([u, v, z], dim=-1)
+    # # vertices = vertices[:, :, :2] / \
+    # #     torch.reshape(vertices[:, :, 2] + eps, [vertices.shape[0], -1, 1])
+    # # vertices = torch.stack(
+    # #         [vertices[:, :, 0], img_size-vertices[:, :, 1]], dim=2)
 
-    return vertices
+    batchsize = vs.shape[0]
+    camera_pos = torch.tensor(
+        [0.0, 0.0, 10.0], device=vs.device).reshape(1, 1, 3)
+    
+    reverse_z = np.reshape(
+        np.array([1.0, 0, 0, 0, 1, 0, 0, 0, -1.0], dtype=np.float32), [1, 3, 3])
+    reverse_z = torch.tensor(reverse_z, device=vs.device)
+
+    half_image_width = 224 // 2
+    p_matrix = np.array([img_size * (1015/224), 0.0, half_image_width,
+                            0.0, img_size * (1015/224), half_image_width,
+                            0.0, 0.0, 1.0], dtype=np.float32).reshape(1, 3, 3)
+    p_mat = torch.tensor(p_matrix, device=vs.device)
+
+    vs = torch.matmul(vs, reverse_z.repeat(
+        (batchsize, 1, 1))) + camera_pos
+    aug_projection = torch.matmul(
+        vs, p_mat.repeat((batchsize, 1, 1)).permute((0, 2, 1)))
+
+    face_projection = aug_projection[:, :, :2] / \
+        torch.reshape(aug_projection[:, :, 2], [batchsize, -1, 1])
+    
+    face_projection = torch.stack(
+            [face_projection[:, :, 0], img_size-face_projection[:, :, 1]], dim=2)
+    
+    return face_projection
+
+    # #also add camera pos 0,0,10 (or -10?)
+
+    # # we use x_ for x' and x__ for x'' etc.
+    # # r = torch.sqrt(x_ ** 2 + y_ ** 2)
+    # # x__ = x_ * (1 * (r ** 2) * (r ** 4) * (r ** 6)) + 2 * x_ * y_ * (r ** 2 + 2 * x_ ** 2)
+    # # y__ = y_ * (1* (r ** 2) * (r ** 4) * (r ** 6))  * (r ** 2 + 2 * y_ ** 2) + 2  * x_ * y_
+    # # vertices = torch.stack([x__, y__, torch.ones_like(z)], dim=-1)
+    # vertices = torch.matmul(vertices, K.transpose(1, 2))
+    # x, y, z = vertices[:, :, 0], vertices[:, :, 1], vertices[:, :, 2]
+    # vertices[:, :, 0] = x / (z + eps)
+    # vertices[:, :, 1] = y / (z + eps)
+    # u, v = vertices[:, :, 0], vertices[:, :, 1]
+    # v = orig_size - v
+    # # map u,v from [0, img_size] to [-1, 1] to be compatible with the renderer
+    # u = 2 * (u - orig_size / 2.) / orig_size
+    # v = 2 * (v - orig_size / 2.) / orig_size
+    # vertices = torch.stack([u, v, z], dim=-1)
+
+    #return vertices
 
 
 def face_vertices(vertices, faces):

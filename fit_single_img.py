@@ -174,12 +174,13 @@ def fit(args):
             writer.add_figure('landmarks_proj', fig, global_step=i)
             plt.close(fig)
 
-            # Original (resized) face image with predicted (projected) landmarks
+            # Original (resized) face image with gt landmarks and predicted (projected) landmarks
             fig, ax = plt.subplots(figsize=(4, 4))
             ax.axis('off')
             ax.imshow(orig_face_log)
-            ax.scatter(lm_proj_out[:,:, 0], lm_proj_out[:,:, 1], s=8)
-            #wandb.log({'landmarks': fig})
+            ax.scatter(lm_out[:,:, 0], lm_out[:,:, 1], s=8)
+            ax.scatter(lm_proj_out[:,:, 0], lm_proj_out[:,:, 1], s=8, color='r')
+            #wandb.log({'landmarks_proj': fig})
             writer.add_figure('landmarks', fig, global_step=i)
             plt.close(fig)
 
