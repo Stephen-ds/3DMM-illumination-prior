@@ -13,6 +13,7 @@ import torch.nn.functional as F
 from Flame.models.lbs import lbs, batch_rodrigues, vertices2landmarks
 from Flame.utils.util import batch_persp_proj
 from core.BaseModel import BaseReconModel
+from Flame.utils.config import cfg
 
 
 def to_tensor(array, dtype=torch.float32):
@@ -175,7 +176,7 @@ class FLAME(nn.Module):
                                        self.full_lmk_bary_coords.repeat(vertices.shape[0], 1, 1))
         return landmarks3d
 
-    def forward(self, img_tensor, project=False, rot_tensor=None, trans_tensor=None, shape_params=None, expression_params=None, pose_params=None, eye_pose_params=None):
+    def forward(self, shape_params=None, expression_params=None, pose_params=None, eye_pose_params=None):
         """
             Input:
                 shape_params: N X number of shape parameters
@@ -188,8 +189,10 @@ class FLAME(nn.Module):
         batch_size = shape_params.shape[0]
         if eye_pose_params is None:
             eye_pose_params = self.eye_pose.expand(batch_size, -1)
+
+        id_rot = torch.zeros((1,3), device = pose_params.device)
         betas = torch.cat([shape_params, expression_params], dim=1)
-        full_pose = torch.cat([pose_params[:, :3], self.neck_pose.expand(batch_size, -1), pose_params[:, 3:], eye_pose_params], dim=1)
+        full_pose = torch.cat([id_rot, self.neck_pose.expand(batch_size, -1), pose_params, eye_pose_params], dim=1)
         template_vertices = self.v_template.unsqueeze(0).expand(batch_size, -1, -1)
 
         # import ipdb; ipdb.set_trace()
@@ -245,11 +248,11 @@ class FLAMETex(nn.Module):
             texture_basis = tex_space[pc_key].reshape(-1, n_pc)
 
 
-        elif config.tex_type == 'ten24':
+        elif config.tex_type == 'balancedAlb':
             mu_key = 'mean'
             pc_key = 'tex_dir'
             n_pc = 54
-            tex_path = config.ten24_tex_path
+            tex_path = config.balancedAlb_tex_path
             tex_space = np.load(tex_path)
             texture_mean = tex_space[mu_key].reshape(1, -1)/255.
             texture_basis = tex_space[pc_key].reshape(-1, n_pc)/255.
@@ -278,7 +281,7 @@ class FLAMETex(nn.Module):
     def forward(self, texcode):
         texture = self.texture_mean + (self.texture_basis*texcode[:,None,:]).sum(-1)
         texture = texture.reshape(texcode.shape[0], 512, 512, 3).permute(0,3,1,2)
-        texture = F.interpolate(texture, [512,512])
+        texture = F.interpolate(texture, [cfg.uv_size,cfg.uv_size])
         texture = texture[:,[2,1,0], :,:]
         return texture
 

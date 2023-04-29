@@ -41,8 +41,10 @@ class BaseOptions():
                                  help='weight for rotation regularizer')
         self.parser.add_argument('--trans_reg_w', type=float, default=1,
                                  help='weight for translation regularizer')
-        self.parser.add_argument('--reni_reg_w', type=float, default=1.0,
+        self.parser.add_argument('--reni_reg_w', type=float, default=0.001,
                                  help='weight for reni latent code regularizer')
+        self.parser.add_argument('--perceptual_w', type=float, default=1.0,
+                                 help='weight for perceptual loss')
 
         self.parser.add_argument('--tex_w', type=float, default=1,
                                  help='weight for texture reflectance loss.')

@@ -24,8 +24,8 @@ def pad_img(bbox, img, padding_ratio=0.2):
     scale_h = (bbox[3] - bbox[1]) * padding_ratio
     bbox[0] = np.floor(max(bbox[0] - scale_w, 0))
     bbox[1] = np.floor(max(bbox[1] - scale_h, 0))
-    bbox[2] = np.ceil(min(bbox[2] + scale_w, img.shape[0]))
-    bbox[3] = np.ceil(min(bbox[3] + scale_w, img.shape[0]))
+    bbox[2] = np.ceil(min(bbox[2] + scale_w, img.shape[1]))
+    bbox[3] = np.ceil(min(bbox[3] + scale_h, img.shape[0]))
     bbox = bbox.astype(np.uint16)
 
     #Create new array for the padded image

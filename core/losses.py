@@ -3,26 +3,33 @@ import torch
 import torch.nn.functional as F
 
 
+# def photo_loss(pred_img, gt_img, img_mask):
+#     pred_img = pred_img.float()
+#     diff = torch.sum(torch.square(pred_img-gt_img), 3)
+#     ind_mask = diff.nonzero(as_tuple=True)
+    
+#     loss = torch.sqrt(diff[ind_mask]) * img_mask[ind_mask]
+#     loss = torch.sum(loss) / torch.sum(img_mask[ind_mask])
+#     loss = torch.mean(loss)
+
+#     return loss
+
+
 def photo_loss(pred_img, gt_img, img_mask):
     pred_img = pred_img.float()
-    diff = torch.sum(torch.square(pred_img-gt_img), 3)
-    ind_mask = diff.nonzero(as_tuple=True)
-    
-    loss = torch.sqrt(diff[ind_mask]) * img_mask[ind_mask]
-    loss = torch.sum(loss) / torch.sum(img_mask[ind_mask])
+    diff = (pred_img - gt_img) * img_mask
+    loss = torch.sqrt(torch.sum(torch.square(
+        diff), 1) + 1e-7)
+    loss = torch.sum(loss, dim=(1, 2))
     loss = torch.mean(loss)
 
     return loss
 
+def intensity_norm_loss(norm, colors):
+    loss = torch.sqrt(torch.sum(torch.square(colors / norm), dim=2) + 1e-7)
+    loss = torch.abs(torch.mean(1 - loss))
 
-# def photo_loss(pred_img, gt_img):
-#     pred_img = pred_img.float()
-#     loss = torch.sqrt(torch.sum(torch.square(
-#         pred_img - gt_img), 3))/255
-#     loss = torch.sum(loss, dim=(1, 2))
-#     loss = torch.mean(loss)
-
-#     return loss
+    return loss
 
 
 def lm_loss(pred_lms, gt_lms, weight, img_size):

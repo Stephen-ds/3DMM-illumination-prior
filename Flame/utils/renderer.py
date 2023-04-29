@@ -14,6 +14,9 @@ from pytorch3d.renderer.cameras import try_get_projection_transform
 from Flame.utils import util
 from Flame.utils.crop_lms import get_face_inds
 
+import cv2
+import pickle
+
 from pytorch3d.renderer import (
     look_at_view_transform,
     FoVPerspectiveCameras,
@@ -86,7 +89,6 @@ class Pytorch3dRasterizer(nn.Module):
 
         vismask = (pix_to_face > -1).float()
         D = attributes.shape[-1]
-        attributes = attributes.clone()
         attributes = attributes.view(attributes.shape[0] * attributes.shape[1], 3, attributes.shape[-1])
         N, H, W, K, _ = bary_coords.shape
         mask = pix_to_face == -1  # []
@@ -231,7 +233,6 @@ class PerspectiveRasterizer(nn.Module):
 
         vismask = (pix_to_face > -1).float()
         D = attributes.shape[-1]
-        attributes = attributes.clone()
         attributes = attributes.view(attributes.shape[0] * attributes.shape[1], 3, attributes.shape[-1])
         N, H, W, K, _ = bary_coords.shape
         mask = pix_to_face == -1  # []
@@ -247,21 +248,22 @@ class PerspectiveRasterizer(nn.Module):
         return pixel_vals
 
 class Renderer(nn.Module):
-    def __init__(self, image_size, obj_filename, uv_size=256):
+    def __init__(self, image_size, obj_filename, mask_path_face, mask_path_face_eyes, mask_path_FAIR, device, uv_size=256):
         super(Renderer, self).__init__()
         self.image_size = image_size
         self.uv_size = uv_size
+        self.device = device
 
-        vert_inds = get_face_inds()
+        #vert_inds = get_face_inds()
         verts, faces, aux = load_obj(obj_filename)
         #verts = verts[vert_inds]
         aux = aux
         uvcoords = aux.verts_uvs[None, ...]  # (N, V, 2)
         uvfaces = faces.textures_idx[None, ...]  # (N, F, 3)   
         faces = faces.verts_idx[None, ...]
-        isin_f = torch.isin(faces, vert_inds).sum(2)
-        faces = faces[isin_f == 3].view(1, -1, 3)
-        uvfaces = uvfaces[isin_f == 3].view(1, -1, 3)
+        #isin_f = torch.isin(faces, vert_inds).sum(2)
+        #faces = faces[isin_f == 3].view(1, -1, 3)
+        #uvfaces = uvfaces[isin_f == 3].view(1, -1, 3)
         self.rasterizer = PerspectiveRasterizer(image_size * (1015/224), image_size)
         self.uv_rasterizer = PerspectiveRasterizer(uv_size * (1015/224), uv_size)
 
@@ -277,6 +279,26 @@ class Renderer(nn.Module):
         self.register_buffer('uvcoords', uvcoords)
         self.register_buffer('uvfaces', uvfaces)
         self.register_buffer('face_uvcoords', face_uvcoords)
+
+        ## face masks
+        # face
+        uv_face_mask = cv2.resize(cv2.imread(mask_path_face), (uv_size, uv_size)).astype(np.float32) / 255.
+        uv_face_mask = torch.from_numpy(uv_face_mask[None, :, :, :]).permute(0,3,1,2).to(self.device)
+        uv_face_mask = uv_face_mask[:,0,:,:]
+        self.uv_face_mask = uv_face_mask
+
+        # face + eyes + mouth
+        uv_face_eyes_mask = cv2.resize(cv2.imread(mask_path_face_eyes), (uv_size, uv_size)).astype(np.float32) / 255.
+        uv_face_eyes_mask = torch.from_numpy(uv_face_eyes_mask[None, :, :, :]).permute(0,3,1,2).to(self.device)
+        uv_face_eyes_mask = uv_face_eyes_mask[:,0,:,:]
+        self.uv_face_eyes_mask = uv_face_eyes_mask
+
+        # FAIR
+        uv_fair_mask = cv2.resize(cv2.imread(mask_path_FAIR), (uv_size, uv_size)).astype(np.float32) / 255.
+        uv_fair_mask = torch.from_numpy(uv_fair_mask[None, :, :, :]).permute(0,3,1,2).to(self.device)
+        uv_fair_mask = uv_fair_mask[:,0,:,:]
+        self.uv_fair_mask = uv_fair_mask
+
 
         # shape colors
         colors = torch.tensor([74, 120, 168])[None, None, :].repeat(1, faces.max() + 1, 1).float() / 255.
@@ -303,10 +325,10 @@ class Renderer(nn.Module):
         transformed_vertices: [N, V, 3], range(-1, 1), projected vertices, for rendering
         '''
         batch_size = vertices.shape[0]
-        #envmap_intensity = torch.clamp(envmap_intensity, 1e-7, 1.0)
-        envmap_intensity = 1
         ## rasterizer near 0 far 100. move mesh so minz larger than 0
         #transformed_vertices[:, :, 2] = transformed_vertices[:, :, 2] + 10
+
+        envmap_intensity = torch.clamp(envmap_intensity, min=0)
 
         # Attributes
         face_vertices = util.face_vertices(vertices, self.faces.expand(batch_size, -1, -1))
@@ -317,7 +339,7 @@ class Renderer(nn.Module):
 
         # render
         attributes = torch.cat([self.face_uvcoords.expand(batch_size, -1, -1, -1), transformed_face_normals,
-                                face_vertices.detach(), face_normals], -1)
+                                face_vertices, face_normals], -1)
         # import ipdb;ipdb.set_trace()
         rendering = self.rasterizer(transformed_vertices, self.faces.expand(batch_size, -1, -1), attributes)
 
@@ -332,6 +354,16 @@ class Renderer(nn.Module):
         albedo_images = torch.where(alpha_images > 0., albedo_images, 
                                     torch.zeros(1, dtype=torch.float32, device=rendering.device))
         
+        face_mask = F.grid_sample(self.uv_face_mask.unsqueeze(1), grid, align_corners=False)
+        face_mask = torch.where(alpha_images > 0., face_mask, 
+                                    torch.zeros(1, dtype=torch.float32, device=rendering.device))
+        face_eyes_mask = F.grid_sample(self.uv_face_eyes_mask.unsqueeze(1), grid, align_corners=False)
+        face_eyes_mask = torch.where(alpha_images > 0., face_eyes_mask, 
+                                    torch.zeros(1, dtype=torch.float32, device=rendering.device))
+        fair_mask = F.grid_sample(self.uv_fair_mask.unsqueeze(1), grid, align_corners=False)
+        fair_mask = torch.where(alpha_images > 0., fair_mask, 
+                                    torch.zeros(1, dtype=torch.float32, device=rendering.device))
+        
 
         # remove inner mouth region
         transformed_normal_map = torch.where(albedo_images.sum(1) > 0.0, rendering[:, 3:6, :, :], 
@@ -339,6 +371,7 @@ class Renderer(nn.Module):
         # pos_mask = (transformed_normal_map[:, 2:, :, :] < -0.05).float()
         #transformed_normal_map = rendering[:, 3:6, :, :]
         pos_mask = (transformed_normal_map[:, 2:, :, :] > -0.05).float()
+        albedo_images = albedo_images * pos_mask
 
         # shading
         if envmap is not None:
@@ -352,19 +385,22 @@ class Renderer(nn.Module):
             # print(torch.max(shading_images))
             # print(torch.mean(shading_images))
             # print(torch.min(shading_images))
-            images = albedo_images * shading_images
+            images = albedo_images * shading_images * envmap_intensity.permute(0,2,1).unsqueeze(-1)
             images = sRGB_old(images, permute = False)
             shading_images = sRGB_old(shading_images, permute = False)
 
         else:
             images = albedo_images
-            shading_images = images.detach()
+            shading_images = images
 
         outputs = {
             'images': images,
             'albedo_images': albedo_images,
             'alpha_images': alpha_images,
             'pos_mask': pos_mask,
+            'face_mask': face_mask,
+            'face_eyes_mask': face_eyes_mask,
+            'fair_mask': fair_mask,
             'shading_images': shading_images,
             'grid': grid,
             'normals': normals
@@ -378,7 +414,7 @@ class Renderer(nn.Module):
         )  # (B, J, 3) unit vector associated with the direction of each pixel in a panoramic image where J = H*W
         light_colors = envmap.environment_map.to(
             device=normal_images.device
-        ) * envmap_intensity # (B, J, 3) RGB color of the environment map.
+        ) / envmap_intensity # (B, J, 3) RGB color of the environment map.
 
         normal_images = F.normalize(normal_images, p=2, dim=-1, eps=1e-6)
         #create copies of light directions for batch matrix multiplication
@@ -458,13 +494,13 @@ class Renderer(nn.Module):
         transformed_face_normals = util.face_vertices(transformed_normals, self.faces.expand(batch_size, -1, -1))
         # render
         attributes = torch.cat(
-            [self.face_colors.expand(batch_size, -1, -1, -1), transformed_face_normals.detach(), face_vertices.detach(),
-             face_normals.detach()], -1)
+            [self.face_colors.expand(batch_size, -1, -1, -1), transformed_face_normals, face_vertices,
+             face_normals], -1)
         rendering = self.rasterizer(transformed_vertices, self.faces.expand(batch_size, -1, -1), attributes)
         # albedo
         albedo_images = rendering[:, :3, :, :]
         # shading
-        normal_images = rendering[:, 9:12, :, :].detach()
+        normal_images = rendering[:, 9:12, :, :]
         if envmap is not None:
             normal_images = rendering[:, 9:12, :, :]
             shading_images = self.add_RENI(normal_images.permute(0, 2, 3, 1), envmap, envmap_intensity)
@@ -487,7 +523,7 @@ class Renderer(nn.Module):
         rendering = self.rasterizer(transformed_vertices, self.faces.expand(batch_size, -1, -1), attributes)
 
         ####
-        alpha_images = rendering[:, -1, :, :][:, None, :, :].detach()
+        alpha_images = rendering[:, -1, :, :][:, None, :, :]
         normal_images = rendering[:, :3, :, :]
         return normal_images
 
@@ -497,11 +533,18 @@ class Renderer(nn.Module):
         uv_vertices: [bz, 3, h, w]
         '''
         batch_size = vertices.shape[0]
-        face_vertices = util.face_vertices(vertices, self.faces.expand(batch_size, -1, -1)).clone().detach()
+        face_vertices = util.face_vertices(vertices, self.faces.expand(batch_size, -1, -1))
         uv_vertices = self.uv_rasterizer(self.uvcoords.expand(batch_size, -1, -1),
                                          self.uvfaces.expand(batch_size, -1, -1), face_vertices)[:, :3]
 
         return uv_vertices
+    
+    def apply_tex(self, uvcoords_images, transformed_vertices, mask_name=None):
+        uv_verts = self.world2uv(transformed_vertices)
+        grid = (uvcoords_images).permute(0, 2, 3, 1)[:, :, :, :2]
+
+        albedo_images = F.grid_sample(albedos, grid, align_corners=False)
+
 
     def save_obj(self, filename, vertices, textures):
         '''

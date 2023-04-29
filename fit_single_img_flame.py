@@ -30,6 +30,7 @@ from core.BFM09Model import BFM09ReconModel
 from core.BaseModel import BaseReconModel
 from core.preprocess_img import get_skinmask
 from Flame.utils.crop_lms import get_face_inds
+from seg.test import evaluate #face-parsing.pytorch
 
 
 from torch.utils.tensorboard import SummaryWriter
@@ -67,7 +68,8 @@ def fit(args):
     reni = RENI(32, 64, device=args.device)
     reni_model = reni.model
 
-    render = Renderer(args.tar_size, obj_filename=cfg.mesh_file, uv_size=512).to(args.device)
+    render = Renderer(args.tar_size, cfg.mesh_file, cfg.mask_path_face, cfg.mask_path_face_eyes, cfg.mask_path_fair, 
+                      args.device, uv_size=cfg.uv_size).to(args.device)
 
     focal = args.tar_size * (1015/224)
 
@@ -75,9 +77,17 @@ def fit(args):
     img_arr = cv2.imread(args.img_path)[:, :, ::-1]
     orig_h, orig_w = img_arr.shape[:2]
 
-    uv_skin_mask = cv2.resize(cv2.imread('Flame/data/uv_face_mask.png'), (512, 512)).astype(np.float32) / 255.
+    uv_skin_mask = cv2.resize(cv2.imread(cfg.mask_path_face), (cfg.uv_size, cfg.uv_size)).astype(np.float32) / 255.
     uv_skin_mask = torch.from_numpy(uv_skin_mask[None, :, :, :]).permute(0,3,1,2).to(args.device)
     uv_skin_mask = uv_skin_mask[:,0,:,:]
+
+    uv_albedo_mask = cv2.resize(cv2.imread(cfg.mask_path_albedo), (cfg.uv_size, cfg.uv_size)).astype(np.float32) / 255.
+    uv_albedo_mask = torch.from_numpy(uv_albedo_mask[None, :, :, :]).permute(0,3,1,2).to(args.device)
+    uv_albedo_mask = uv_albedo_mask[:,0,:,:]
+
+    uv_albedo_weight_mask = cv2.resize(cv2.imread(cfg.mask_path_albedo_weight), (cfg.uv_size, cfg.uv_size)).astype(np.float32) / 255.
+    uv_albedo_weight_mask = torch.from_numpy(uv_albedo_weight_mask[None, :, :, :]).permute(0,3,1,2).to(args.device)
+    uv_albedo_weight_mask = uv_albedo_weight_mask[:,0,:,:]
 
     print('image is loaded. width: %d, height: %d' % (orig_w, orig_h))
 
@@ -99,9 +109,17 @@ def fit(args):
             % (bbox[0], bbox[1], bbox[2], bbox[3]))
 
     
+    # gt_face_mask = get_skinmask(resized_face_img)
+    # gt_face_mask = torch.from_numpy(gt_face_mask).unsqueeze(1).to(device=args.device)
+    gt_face_mask, gt_skin_mask = evaluate(image=face_img, cp='79999_iter.pth')
+    gt_face_mask = torch.from_numpy(gt_face_mask[None,None,...]).float().to(args.device)
+    gt_face_mask = F.interpolate(gt_face_mask, (args.tar_size, args.tar_size))
+
+    gt_skin_mask = torch.from_numpy(gt_skin_mask[None,None,...]).float().to(args.device)
+    gt_skin_mask = F.interpolate(gt_skin_mask, (args.tar_size, args.tar_size))
+
     resized_face_img = cv2.resize(face_img, (args.tar_size, args.tar_size))
-    skin_attention_mask = get_skinmask(resized_face_img)
-    skin_attention_mask = torch.from_numpy(skin_attention_mask).to(device=args.device)
+    
 
     lms = fa.get_landmarks_from_image(resized_face_img)[0]
     lms = lms[:, :2][None, ...]
@@ -126,9 +144,9 @@ def fit(args):
     rot_tensor = nn.Parameter(rot_tensor.to(args.device))
     trans_tensor = torch.zeros((bz, 3), dtype=torch.float32)
     trans_tensor = nn.Parameter(trans_tensor.to(args.device))
-    envmap_intensity = nn.Parameter(torch.full((bz, 1), 0.8).float().to(args.device))
+    envmap_intensity = nn.Parameter(torch.full((bz, 1, 3), 10).float().to(args.device))
     nonrigid_optimizer = torch.optim.Adam(
-        [{'params': [shape, exp, rot_tensor, trans_tensor, tex, envmap_intensity]},
+        [{'params': [shape, pose, exp, rot_tensor, trans_tensor, tex, envmap_intensity]},
         {'params': reni_model.parameters(), 'lr': 1e-1}], lr=args.nrf_lr)
         
     rigid_optimizer = torch.optim.Adam(
@@ -136,14 +154,13 @@ def fit(args):
         lr=args.rf_lr
     )
 
-    face_inds = get_face_inds()
 
     # rigid fitting of pose and camera with 51 static face landmarks,
     # this is due to the non-differentiable attribute of contour landmarks trajectory
     lm_weights = utils.get_lm_weights(args.device)
     for k in range(200):
         losses = {}
-        vertices, landmarks2d, landmarks3d = flame(img_tensor, project=True, rot_tensor=rot_tensor, trans_tensor=trans_tensor, shape_params=shape, expression_params=exp, pose_params=pose)#
+        vertices, landmarks2d, landmarks3d = flame(shape_params=shape, expression_params=exp, pose_params=pose)
         #vertices = vertices[:,face_inds,:]
         vertices = vertices * 10
         landmarks2d = landmarks2d * 10
@@ -212,9 +229,9 @@ def fit(args):
     writer.add_custom_scalars(layout)
     
     # non-rigid fitting of all the parameters with 68 face landmarks, photometric loss and regularization terms.
-    for k in range(200, 1000):
+    for k in range(200, 940):
         losses = {}
-        vertices, landmarks2d, landmarks3d = flame(img_tensor, project=True, rot_tensor=rot_tensor, trans_tensor=trans_tensor, shape_params=shape, expression_params=exp, pose_params=pose)#
+        vertices, landmarks2d, landmarks3d = flame(shape_params=shape, expression_params=exp, pose_params=pose)
         #vertices = vertices[:,face_inds,:]
         vertices = vertices * 10
         landmarks2d = landmarks2d * 10
@@ -239,16 +256,23 @@ def fit(args):
         )
         ######
 
-
-
         ## render
         #albedos = flametex(tex) * uv_skin_mask
         albedos = torch.clamp(flametex(tex), 1e-6, 1)
         ops = render(vertices, trans_vertices, albedos, envmap, envmap_intensity)
         predicted_images = ops['images']
-        render_mask = ops['pos_mask']
-        losses['photometric_texture'] = (render_mask * skin_attention_mask * (predicted_images - img_tensor).abs()).mean() * args.rgb_loss_w
+        render_mask = ops['face_eyes_mask']
+        fair_mask = ops['fair_mask']
+        #weighted_photo_mask = torch.where(gt_skin_mask != 0, render_mask * 1.5, render_mask) * gt_face_mask
+        photo_mask = render_mask * gt_face_mask
+        #losses['photometric_texture'] = (render_mask * gt_face_mask * (predicted_images - img_tensor).abs()).mean() * args.rgb_loss_w
+        losses['photometric_texture'] = lossfuncs.photo_loss(predicted_images, img_tensor, photo_mask) * args.rgb_loss_w
 
+        #testing masks
+        facem = predicted_images * render_mask
+        faceme = predicted_images * ops['face_eyes_mask']
+        facef = predicted_images * ops['fair_mask']
+        refvis = albedos * uv_skin_mask
 
         embed_face,_ = mtcnn(predicted_images.permute(0,2,3,1)*255, return_prob=True)
         ##TODO add failsafe default if no face found so that loss will return something appropriately high
@@ -263,14 +287,15 @@ def fit(args):
         #losses['pose_reg'] = (torch.sum(pose ** 2) / 2) * cfg.w_pose_reg
         losses['reni reg'] = lossfuncs.get_l2(Z) * args.reni_reg_w
         losses['perceptual'] = lossfuncs.perceptual_loss(embeddings, gt_embeddings) * 1
+        losses['intensity_norm'] = lossfuncs.intensity_norm_loss(envmap_intensity, envmap.environment_map)
+        #losses['ita'] = lossfuncs.ita_loss(predicted_images, img_tensor, ops['fair_mask'] * gt_face_mask)
 
-
-
-
-        albedoss = albedos.permute(0,2,3,1).flatten(1,2)
-        maskk = uv_skin_mask.flatten(1,2)
+        weighted_albedo_mask = torch.where(uv_albedo_weight_mask != 0, uv_albedo_mask * 1.5, uv_albedo_mask).flatten(1,2)
+        albedos_perm = albedos.permute(0,2,3,1).flatten(1,2)
+        #albedoss = ops['albedo_images']
+        #maskk = ops['fair_mask']
         losses['reflectance'] = lossfuncs.reflectance_loss(
-            albedoss, maskk) * args.tex_w
+            albedos_perm, weighted_albedo_mask) * args.tex_w
 
         all_loss = 0.
         for key in losses.keys():
@@ -348,7 +373,7 @@ def fit(args):
         #albedos = flametex(tex) * uv_skin_mask
         ops = render(vertices, trans_vertices, albedos, envmap, envmap_intensity)
         rendered_img = (ops['images']).permute(0,2,3,1)
-        mask = (ops['pos_mask']).permute(0,2,3,1)
+        mask = (ops['face_eyes_mask'] * gt_face_mask).permute(0,2,3,1)
         ######
 
         ### Reconstruct full image with predicted face overlayed ###
