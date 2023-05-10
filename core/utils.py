@@ -49,6 +49,16 @@ def pad_img(bbox, img, padding_ratio=0.2):
 
     return padded_img, sidelen, bbox, bbox_offset
 
+# def pad_no_crop(img):
+#     w = img.shape[1]
+#     h = img.shape[0]
+#     max_side = max(w,h)
+
+#     padded_img = np.zeros((max_side, max_side, 3), dtype=np.uint8)
+    
+#     padded_img[0:h, 0:w, :] = img
+
+
 
 
 def mymkdirs(path):

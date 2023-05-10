@@ -131,7 +131,7 @@ def fit(args):
         #######
 
         ### Calculate losses ###
-        photo_loss_val = losses.photo_loss(
+        photo_loss_val = losses.photo_loss_bfm(
             rendered_img, img_tensor, mask > 0) * args.rgb_loss_w
         
         lm_loss_val = losses.lm_loss(lms_proj, lms, lm_weights,

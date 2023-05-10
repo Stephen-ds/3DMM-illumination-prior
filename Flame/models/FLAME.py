@@ -192,7 +192,8 @@ class FLAME(nn.Module):
 
         id_rot = torch.zeros((1,3), device = pose_params.device)
         betas = torch.cat([shape_params, expression_params], dim=1)
-        full_pose = torch.cat([id_rot, self.neck_pose.expand(batch_size, -1), pose_params, eye_pose_params], dim=1)
+        full_pose = torch.cat([id_rot, id_rot, pose_params, eye_pose_params], dim=1)
+        #full_pose = torch.cat([id_rot, id_rot, id_rot, eye_pose_params], dim=1)
         template_vertices = self.v_template.unsqueeze(0).expand(batch_size, -1, -1)
 
         # import ipdb; ipdb.set_trace()
@@ -200,6 +201,7 @@ class FLAME(nn.Module):
                           self.shapedirs, self.posedirs,
                           self.J_regressor, self.parents,
                           self.lbs_weights, dtype=self.dtype)
+        #vertices = template_vertices
         # if project:
         #     rotation = BaseReconModel.compute_rotation_matrix(batch_size, angles=rot_tensor)
 

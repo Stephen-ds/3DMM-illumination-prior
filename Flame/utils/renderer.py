@@ -328,7 +328,7 @@ class Renderer(nn.Module):
         ## rasterizer near 0 far 100. move mesh so minz larger than 0
         #transformed_vertices[:, :, 2] = transformed_vertices[:, :, 2] + 10
 
-        envmap_intensity = torch.clamp(envmap_intensity, min=0)
+        #envmap_intensity = torch.clamp(envmap_intensity, min=0)
 
         # Attributes
         face_vertices = util.face_vertices(vertices, self.faces.expand(batch_size, -1, -1))
@@ -385,7 +385,7 @@ class Renderer(nn.Module):
             # print(torch.max(shading_images))
             # print(torch.mean(shading_images))
             # print(torch.min(shading_images))
-            images = albedo_images * shading_images * envmap_intensity.permute(0,2,1).unsqueeze(-1)
+            images = albedo_images * shading_images
             images = sRGB_old(images, permute = False)
             shading_images = sRGB_old(shading_images, permute = False)
 
@@ -414,7 +414,7 @@ class Renderer(nn.Module):
         )  # (B, J, 3) unit vector associated with the direction of each pixel in a panoramic image where J = H*W
         light_colors = envmap.environment_map.to(
             device=normal_images.device
-        ) / envmap_intensity # (B, J, 3) RGB color of the environment map.
+        ) # (B, J, 3) RGB color of the environment map.
 
         normal_images = F.normalize(normal_images, p=2, dim=-1, eps=1e-6)
         #create copies of light directions for batch matrix multiplication
@@ -423,9 +423,9 @@ class Renderer(nn.Module):
         diffuse = torch.einsum("bhwk,bhjk->bhwj", normal_images, L_batch)  # (B, H, W, J)
         diffuse = torch.clamp(diffuse, min=0.0, max=1.0)                   
         # scale every dot product by colour of light source, prescaled by sineweight
-        diffuse = torch.einsum("bjk,bhwj->bhwk", light_colors, diffuse)  # (B, H, W, 3)
+        diffuse = torch.einsum("bjk,bhwj->bhwk", light_colors, diffuse)# (B, H, W, 3)
 
-        return diffuse.permute(0,3,1,2)
+        return diffuse.permute(0,3,1,2) 
 
 
 
@@ -484,7 +484,7 @@ class Renderer(nn.Module):
 
         ## rasterizer near 0 far 100. move mesh so minz larger than 0
         #transformed_vertices[:, :, 2] = transformed_vertices[:, :, 2] + 10
-        envmap_intensity = torch.clamp(envmap_intensity, 0.05, 1.0)
+        #envmap_intensity = torch.clamp(envmap_intensity, 0.05, 1.0)
 
         # Attributes
         face_vertices = util.face_vertices(vertices, self.faces.expand(batch_size, -1, -1))
