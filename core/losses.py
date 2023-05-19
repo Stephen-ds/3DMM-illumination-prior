@@ -53,6 +53,9 @@ def reflectance_loss(tex, skin_mask):
 
     return loss
 
+def reni_minmax_reg(envmap):
+    return torch.max(envmap) - torch.min(envmap)
+
 
 def gamma_loss(gamma):
 

@@ -9,3 +9,4 @@ requirements.txt
 runs/
 wandb/
 results/run/
+benchmarks/
