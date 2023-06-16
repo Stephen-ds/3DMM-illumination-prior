@@ -1,7 +1,10 @@
 
 
 # Reducing Racial Bias For In-The-Wild 3D Face Reconstruction Using a Learned Illumination Prior
- Supplementary code, submitted in part fulfulment for the degree of MMath in Mathematics and Computer Science
+
+**Expect a refactoring update soon** 
+ 
+Supplementary code, submitted in part fulfulment for the degree of MMath in Mathematics and Computer Science
 
 Author: Stephen Da'Prato-Shepard
 
